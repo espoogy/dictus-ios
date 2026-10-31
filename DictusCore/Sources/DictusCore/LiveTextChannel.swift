@@ -44,6 +44,14 @@ public enum LiveTextChannel {
         AppGroup.defaults.object(forKey: enabledKey) as? Bool ?? true
     }
 
+    /// EXPERIMENT: turn the mic off between dictations (no orange dot) and try to turn
+    /// it back on from the background. Default off.
+    public static let micSleepKey = "dictus.audio.micSleepExperiment"
+
+    public static var isMicSleepEnabled: Bool {
+        AppGroup.defaults.bool(forKey: micSleepKey)
+    }
+
     public static let micReadyChoices: [Int] = [10, 30, 60, 120]
     public static let defaultMicReadyMinutes = 30
 

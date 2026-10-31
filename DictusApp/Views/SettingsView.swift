@@ -68,6 +68,8 @@ struct SettingsView: View {
     @AppStorage(LiveTextChannel.micReadyMinutesKey, store: UserDefaults(suiteName: AppGroup.identifier))
     private var micReadyMinutes = LiveTextChannel.defaultMicReadyMinutes
     @ObservedObject private var liveDictation = LiveDictation.shared
+    @AppStorage(LiveTextChannel.micSleepKey, store: UserDefaults(suiteName: AppGroup.identifier))
+    private var micSleepExperiment = false
 
     /// Post-STT polish toggle (issue #141). Off by default — opt-in measurement at round 1.
     @AppStorage(SharedKeys.polishEnabled, store: UserDefaults(suiteName: AppGroup.identifier))
@@ -279,6 +281,8 @@ struct SettingsView: View {
                     }
                 }
 
+                Toggle("Experiment: mic off between dictations", isOn: $micSleepExperiment)
+
                 Picker("Keep mic ready", selection: $micReadyMinutes) {
                     ForEach(LiveTextChannel.micReadyChoices, id: \.self) { minutes in
                         Text(minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h").tag(minutes)
@@ -287,7 +291,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live text")
             } footer: {
-                Text("Live text puts words in the text field while you speak, in English only. You can delete words and keep talking. \"Keep mic ready\" is how long Dictus stays ready after you dictate. Longer means fewer jumps to the Dictus app, but uses about 3% battery per hour.")
+                Text("Live text puts words in the text field while you speak, in English only. You can delete words and keep talking. \"Keep mic ready\" is how long Dictus stays ready after you dictate. Longer means fewer jumps to the Dictus app, but uses about 3% battery per hour. The experiment turns the mic off 8 seconds after each dictation and tries to turn it back on without opening the app.")
             }
 
             // Section 1: Transcription

@@ -612,7 +612,7 @@ class DictationCoordinator: ObservableObject {
         // running and we're in background (Darwin notification from keyboard), attempting
         // to start will fail. The keyboard's fallback opens the URL scheme after 500ms.
         let appState = UIApplication.shared.applicationState
-        if !fromURL && appState != .active && !audioEngine.isEngineRunning {
+        if !fromURL && appState != .active && !audioEngine.isEngineRunning && !audioEngine.isMicAsleep {
             PersistentLog.log(.dictationDeferred(reason: "no engine running, appState=\(appState.rawValue)"))
             return
         }
@@ -669,7 +669,7 @@ class DictationCoordinator: ObservableObject {
         // the main actor can land between here and the first write below (#267).
         let session = sessionGeneration.current
 
-        if audioEngine.isEngineRunning {
+        if audioEngine.isEngineRunning || audioEngine.isMicAsleep {
             // WARM START: engine already running → purge + record (instant)
             dictationTask = Task {
                 do {
@@ -684,6 +684,16 @@ class DictationCoordinator: ObservableObject {
                     // capturing for a dictation the user called off -- the orphaned
                     // engine of #60, arrived at from the other end.
                     guard mayReport(session, "warm start") else { return }
+                    // Self-hosted fork, mic-sleep experiment: try to turn the mic back on.
+                    // If iOS refuses from the background, leave the status at "requested":
+                    // the keyboard then opens the app after 0.5 s, as it always did.
+                    if audioEngine.isMicAsleep {
+                        do {
+                            try audioEngine.wakeMic(context: fromURL ? "url" : "keyboard")
+                        } catch {
+                            return
+                        }
+                    }
                     updateStatus(.recording)
                     LiveActivityManager.shared.transitionToRecording()
                     try audioEngine.startRecording()

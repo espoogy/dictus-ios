@@ -176,6 +176,13 @@ class UnifiedAudioEngine: ObservableObject {
     /// thread, while a dictation is recording. Set by `LiveDictation` for live text.
     var onRecordedSamples: (([Float]) -> Void)?
 
+    /// Self-hosted fork, EXPERIMENT "mic sleep": between dictations the microphone is
+    /// turned off (no orange dot) while silent playback keeps the app alive. The next
+    /// dictation tries to turn the mic back on from the background. See `sleepMic()`.
+    private(set) var isMicAsleep = false
+    private var micSleepWorkItem: DispatchWorkItem?
+    private var silenceEngine: AVAudioEngine?
+
     /// Converter from the hardware format (typically 48kHz mono) to 16kHz mono.
     ///
     /// WHY nonisolated(unsafe): `startEngine()` pre-builds one from the format the input
@@ -741,6 +748,8 @@ class UnifiedAudioEngine: ObservableObject {
     func warmUp() throws {
         // Cancel any pending idle release — we're explicitly going back warm.
         cancelIdleRelease()
+        cancelMicSleep()
+        if isMicAsleep { try wakeMic(context: "warmUp") }
 
         guard !engine.isRunning else {
             PersistentLog.log(.engineWarmUpSuccess(context: "already running"))
@@ -786,6 +795,8 @@ class UnifiedAudioEngine: ObservableObject {
 
         // Cancel any pending idle release — recording activity resets the timer.
         cancelIdleRelease()
+        cancelMicSleep()
+        if isMicAsleep { try wakeMic(context: "startRecording") }
 
         if !engine.isRunning {
             try startEngine(context: "startRecording")
@@ -831,6 +842,7 @@ class UnifiedAudioEngine: ObservableObject {
         // Arm the idle-release timer (issue #106 Phase B). If the user starts a
         // new recording or warms up before the timer fires, it gets cancelled.
         scheduleIdleRelease(after: Self.idleReleaseInterval)
+        scheduleMicSleepIfEnabled()
 
         return samples
     }
@@ -1008,6 +1020,9 @@ class UnifiedAudioEngine: ObservableObject {
 
         isRecording = false
         isRecordingFlag = false
+        cancelMicSleep()
+        stopSilence()
+        isMicAsleep = false
 
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
@@ -1754,5 +1769,99 @@ extension UnifiedAudioEngine {
         case .pendingCall:
             return "CallKit reports a call that is ringing or connecting"
         }
+    }
+}
+
+// MARK: - Experiment: mic sleep (self-hosted fork)
+
+extension UnifiedAudioEngine {
+
+    /// Seconds after a dictation before the mic sleeps. Short, so a quick follow-up
+    /// dictation still finds the mic on.
+    private static let micSleepDelay: TimeInterval = 8
+
+    fileprivate func scheduleMicSleepIfEnabled() {
+        cancelMicSleep()
+        guard LiveTextChannel.isMicSleepEnabled else { return }
+        let work = DispatchWorkItem { [weak self] in self?.sleepMic() }
+        micSleepWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.micSleepDelay, execute: work)
+    }
+
+    fileprivate func cancelMicSleep() {
+        micSleepWorkItem?.cancel()
+        micSleepWorkItem = nil
+    }
+
+    /// Turns the microphone off but keeps the audio session active and the app alive
+    /// with silent playback (`UIBackgroundModes: audio`). The idle-release timer still
+    /// runs, so after "Keep mic ready" everything is released as before.
+    func sleepMic() {
+        micSleepWorkItem = nil
+        guard engine.isRunning, !isRecording, !isMicAsleep else { return }
+        do {
+            try startSilence()
+        } catch {
+            // Without silence the app would be suspended and could not wake the mic,
+            // so keep the mic on: the experiment just does not apply this time.
+            PersistentLog.log(.diagnosticProbe(
+                component: "MicSleep", instanceID: "shared", action: "silenceFailed",
+                details: error.localizedDescription
+            ))
+            return
+        }
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        engineGeneration &+= 1
+        isMicAsleep = true
+        PersistentLog.log(.diagnosticProbe(
+            component: "MicSleep", instanceID: "shared", action: "asleep", details: ""
+        ))
+    }
+
+    /// Turns the microphone back on. From the background, iOS may refuse; the error is
+    /// thrown and the mic stays asleep, so the caller can fall back to opening the app.
+    func wakeMic(context: String) throws {
+        do {
+            try startEngine(context: "wakeMic-\(context)")
+        } catch {
+            PersistentLog.log(.diagnosticProbe(
+                component: "MicSleep", instanceID: "shared", action: "wakeFailed",
+                details: "context=\(context) error=\(error.localizedDescription)"
+            ))
+            throw error
+        }
+        isMicAsleep = false
+        stopSilence()
+        PersistentLog.log(.diagnosticProbe(
+            component: "MicSleep", instanceID: "shared", action: "woke", details: "context=\(context)"
+        ))
+    }
+
+    fileprivate func startSilence() throws {
+        if silenceEngine?.isRunning == true { return }
+        let silence = AVAudioEngine()
+        let player = AVAudioPlayerNode()
+        silence.attach(player)
+        let format = silence.mainMixerNode.outputFormat(forBus: 0)
+        silence.connect(player, to: silence.mainMixerNode, format: format)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(format.sampleRate)) else {
+            throw AudioEngineError.installTapFailed(call: .engineStart, reason: "silence buffer")
+        }
+        buffer.frameLength = buffer.frameCapacity   // one second of silence
+        if let channels = buffer.floatChannelData {
+            for channel in 0..<Int(format.channelCount) {
+                channels[channel].update(repeating: 0, count: Int(buffer.frameLength))
+            }
+        }
+        try silence.start()
+        player.scheduleBuffer(buffer, at: nil, options: .loops)
+        player.play()
+        silenceEngine = silence
+    }
+
+    fileprivate func stopSilence() {
+        silenceEngine?.stop()
+        silenceEngine = nil
     }
 }
