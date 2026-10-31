@@ -160,6 +160,7 @@ struct KeyboardRootView: View {
             dictationStatus: state.dictationStatus,
             // Self-hosted fork: during live text the keys stay up, so the mic is the stop button.
             onMicTap: { state.isLiveRecording ? state.requestStop() : state.startRecording() },
+            micStopsRecording: state.isLiveRecording,
             statusMessage: state.statusMessage,
             messageProbeRootViewID: instanceID,
             messageProbeControllerID: controllerID,

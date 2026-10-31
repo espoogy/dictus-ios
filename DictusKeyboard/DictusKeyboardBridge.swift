@@ -174,7 +174,13 @@ final class DictusKeyboardBridge: NSObject,
             }
 
         case .backspace:
-            handleBackspace()
+            // Self-hosted fork: like Apple's dictation, delete removes a whole word
+            // while a live-text dictation is running.
+            if KeyboardState.shared.isLiveRecording {
+                handleWordDelete()
+            } else {
+                handleBackspace()
+            }
 
         case .spacebar:
             handleSpace()

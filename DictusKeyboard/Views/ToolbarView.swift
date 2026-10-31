@@ -25,6 +25,8 @@ struct ToolbarView: View {
     let hasFullAccess: Bool
     let dictationStatus: DictationStatus
     var onMicTap: () -> Void
+    /// Self-hosted fork: the mic stops a live-text dictation.
+    var micStopsRecording = false
 
     // Suggestion bar integration parameters (default to idle/empty)
     var statusMessage: String?
@@ -333,6 +335,7 @@ struct ToolbarView: View {
                 onMicTap()
             }
         )
+        .tappableWhileRecording(micStopsRecording)
         .simultaneousGesture(fanGesture)
     }
 

@@ -63,6 +63,9 @@ public struct AnimatedMicButton: View {
     public let animatesIdleGlow: Bool
 
     public let onTap: () -> Void
+    /// Self-hosted fork: during a live-text dictation the mic is the stop button, so
+    /// it must accept taps while recording.
+    public var tappableWhileRecording = false
 
     public init(status: DictationStatus,
                 isPill: Bool = false,
@@ -106,6 +109,7 @@ public struct AnimatedMicButton: View {
     /// Only idle, ready, and failed allow new dictation starts.
     private var isTappable: Bool {
         status == .idle || status == .ready || status == .failed
+            || (tappableWhileRecording && status == .recording)
     }
 
     public var body: some View {
@@ -393,3 +397,12 @@ public struct AnimatedMicButton: View {
     .background(Color(hex: 0x0A1628))
 }
 #endif
+
+public extension AnimatedMicButton {
+    /// Self-hosted fork: returns a copy that accepts taps while recording.
+    func tappableWhileRecording(_ enabled: Bool) -> AnimatedMicButton {
+        var copy = self
+        copy.tappableWhileRecording = enabled
+        return copy
+    }
+}
