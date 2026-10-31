@@ -47,9 +47,11 @@ rm -f "$PLIST"
   -c "Add :ProgramArguments:0 string $APP/Contents/MacOS/dictus-autosign" \
   -c "Add :AssociatedBundleIdentifiers array" \
   -c "Add :AssociatedBundleIdentifiers:0 string $LABEL" \
-  -c "Add :StartInterval integer 14400" \
+  -c "Add :StartCalendarInterval dict" \
+  -c "Add :StartCalendarInterval:Hour integer 20" \
+  -c "Add :StartCalendarInterval:Minute integer 0" \
   -c "Add :RunAtLoad bool true" \
   "$PLIST" >/dev/null
 
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
-echo "Installed as \"Dictus AutoSign\". It checks every 4 hours. Log: $BASE/autosign.log"
+echo "Installed as \"Dictus AutoSign\". It checks once a day at 8 PM. Log: $BASE/autosign.log"

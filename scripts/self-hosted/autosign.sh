@@ -6,8 +6,9 @@
 # It uses only Apple's own tools (xcodebuild, devicectl) and the Apple ID that is
 # already signed in to Xcode. No password is stored here.
 #
-# launchd runs it every 4 hours. It does nothing unless the last good install is
-# more than 5 days old, so it has 2 days to find the phone on Wi-Fi.
+# launchd runs it once a day at 8 PM (or when the Mac wakes, if it was asleep).
+# It does nothing unless the last good install is more than 4 days old, so it gets
+# 3 tries (days 4, 5, 6) to find the phone before the 7-day signature runs out.
 #
 # Run it by hand:   FORCE=1 ~/Library/Application\ Support/DictusAutoSign/Dictus\ AutoSign.app/Contents/MacOS/dictus-autosign
 # Log:              ~/Library/Application Support/DictusAutoSign/autosign.log
@@ -24,11 +25,20 @@ STAMP="$BASE/last-success"
 REPO="https://github.com/espoogy/dictus-ios.git"
 BRANCH="self-hosted"
 DEVICE="${DICTUS_DEVICE:-BD3CC89F-741F-5310-9393-000CA0C2CD7B}"   # Josh's iPhone
-MAX_AGE_DAYS=5
+MAX_AGE_DAYS=4
+LOCK="$BASE/.lock"
 
 mkdir -p "$BASE"
 exec >>"$LOG" 2>&1
 echo "=== $(date)"
+
+# Only one run at a time. A lock older than 2 hours is from a crashed run.
+find "$LOCK" -maxdepth 0 -mmin +120 -exec rmdir {} \; 2>/dev/null || true
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "Another run is in progress. Skipping."
+  exit 0
+fi
+trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
 
 notify() {
   /usr/bin/osascript -e "display notification \"$1\" with title \"Dictus auto-sign\"" || true
@@ -42,7 +52,7 @@ if [[ -z "${FORCE:-}" && -f "$STAMP" && -n "$(find "$STAMP" -mtime -${MAX_AGE_DA
 fi
 
 # Skip quietly if the phone is not on the network right now. The next run tries again.
-if ! xcrun devicectl list devices 2>/dev/null | grep "$DEVICE" | grep -q "available"; then
+if ! xcrun devicectl list devices 2>/dev/null | grep "$DEVICE" | grep -qE "available|connected"; then
   echo "iPhone not reachable. Will try again later."
   exit 0
 fi

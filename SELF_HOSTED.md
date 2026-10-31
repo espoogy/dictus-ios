@@ -33,8 +33,8 @@ zsh scripts/self-hosted/install-autosign.sh            # install
 zsh scripts/self-hosted/install-autosign.sh --remove   # remove
 ```
 
-Every 4 hours the Mac checks. If the last install is more than 5 days old and the
-iPhone is on the same Wi-Fi, it builds this branch from GitHub and installs it.
+Once a day at 8 PM (or on wake) the Mac checks. If the last install is more than 4 days
+old and the iPhone is on the same Wi-Fi, it builds this branch from GitHub and installs it.
 In System Settings → General → Login Items it is listed as **Dictus AutoSign**.
 Log: `~/Library/Application Support/DictusAutoSign/autosign.log`
 
