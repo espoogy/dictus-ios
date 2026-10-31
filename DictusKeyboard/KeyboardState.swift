@@ -583,8 +583,11 @@ class KeyboardState: ObservableObject {
     private func syncAreaModeWithStatus() {
         // Self-hosted fork: during a live-text dictation the keys stay on screen, so the
         // user can delete a word and keep talking. The toolbar mic becomes the stop button.
-        let live = LiveTextChannel.read(in: defaults) != nil
-            && (dictationStatus == .recording || dictationStatus == .transcribing)
+        // `.requested` too, when live text is expected: otherwise the recording screen
+        // flashes for a moment between the mic tap and the app's "recording".
+        let live = (LiveTextChannel.read(in: defaults) != nil
+                    && (dictationStatus == .recording || dictationStatus == .transcribing))
+            || (dictationStatus == .requested && LiveTextChannel.isExpected)
         if isLiveRecording != live { isLiveRecording = live }
         if live {
             areaMode = areaMode == .recording ? .keys : areaMode

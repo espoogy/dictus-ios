@@ -52,6 +52,17 @@ public enum LiveTextChannel {
         AppGroup.defaults.bool(forKey: micSleepKey)
     }
 
+    /// Written by the app: whether the live-text model is on disk. The keyboard cannot
+    /// see the app's files, and needs this to keep the keys up from the first mic tap.
+    public static let modelInstalledKey = "dictus.live.modelInstalled"
+
+    /// What the keyboard can know before a session starts: live text will be used.
+    public static var isExpected: Bool {
+        let defaults = AppGroup.defaults
+        let language = defaults.string(forKey: SharedKeys.language) ?? "en"
+        return isEnabled && defaults.bool(forKey: modelInstalledKey) && language.hasPrefix("en")
+    }
+
     public static let micReadyChoices: [Int] = [10, 30, 60, 120]
     public static let defaultMicReadyMinutes = 30
 

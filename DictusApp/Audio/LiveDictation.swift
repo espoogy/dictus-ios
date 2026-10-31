@@ -152,12 +152,19 @@ final class LiveDictation: ObservableObject {
         loadTask = nil
         try? FileManager.default.removeItem(at: LiveModelFiles.directory)
         isInstalled = LiveModelFiles.isInstalled
+        publishAvailability()
+    }
+
+    /// Tells the keyboard whether the model is installed (see `LiveTextChannel.isExpected`).
+    func publishAvailability() {
+        AppGroup.defaults.set(LiveModelFiles.isInstalled, forKey: LiveTextChannel.modelInstalledKey)
     }
 
     // MARK: - Model load
 
     /// Starts loading the model in the background, if live text is usable.
     func prewarm() {
+        publishAvailability()
         guard Self.isUsable else { return }
         _ = startLoadIfNeeded()
     }
