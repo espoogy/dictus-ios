@@ -158,7 +158,8 @@ struct KeyboardRootView: View {
         ToolbarView(
             hasFullAccess: state.controller?.hasFullAccess ?? false,
             dictationStatus: state.dictationStatus,
-            onMicTap: { state.startRecording() },
+            // Self-hosted fork: during live text the keys stay up, so the mic is the stop button.
+            onMicTap: { state.isLiveRecording ? state.requestStop() : state.startRecording() },
             statusMessage: state.statusMessage,
             messageProbeRootViewID: instanceID,
             messageProbeControllerID: controllerID,

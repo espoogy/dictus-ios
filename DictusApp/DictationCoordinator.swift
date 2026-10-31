@@ -694,14 +694,17 @@ class DictationCoordinator: ObservableObject {
                             return
                         }
                     }
+                    // Live session first: the keyboard reads it when it sees "recording",
+                    // to decide whether to keep the keys on screen.
+                    if dictationOrigin == .keyboard { LiveDictation.shared.begin(engine: audioEngine) }
                     updateStatus(.recording)
                     LiveActivityManager.shared.transitionToRecording()
                     try audioEngine.startRecording()
-                    if dictationOrigin == .keyboard { LiveDictation.shared.begin(engine: audioEngine) }
                     PersistentLog.log(.audioEngineStarted)
                     schedulePolishPrewarm()
                     await verifyAudioFlow()
                 } catch {
+                    LiveDictation.shared.cancel()
                     PersistentLog.log(.dictationFailed(
                         error: "Warm start: \(DictationFailureMessage.diagnostic(for: error))"))
                     guard mayReport(session, "warm start failure") else { return }

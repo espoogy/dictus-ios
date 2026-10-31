@@ -182,6 +182,9 @@ class KeyboardState: ObservableObject {
 
     @Published var lastTranscription: String?
 
+    /// Backing store for `isLiveRecording` (self-hosted fork).
+    private var liveRecordingFlag = false
+
     /// The red line the toolbar shows above the keys: a dictation error from the app,
     /// or the interruption notice the keyboard raises itself (#261).
     ///
@@ -578,7 +581,22 @@ class KeyboardState: ObservableObject {
     /// every status write, and that repetition is load-bearing: it is how a
     /// keyboard returning from suspension re-synchronises its hosting geometry.
     private func syncAreaModeWithStatus() {
+        // Self-hosted fork: during a live-text dictation the keys stay on screen, so the
+        // user can delete a word and keep talking. The toolbar mic becomes the stop button.
+        let live = LiveTextChannel.read(in: defaults) != nil
+            && (dictationStatus == .recording || dictationStatus == .transcribing)
+        if isLiveRecording != live { isLiveRecording = live }
+        if live {
+            areaMode = areaMode == .recording ? .keys : areaMode
+            return
+        }
         areaMode = KeyboardAreaMode.resolving(status: dictationStatus, current: areaMode)
+    }
+
+    /// Self-hosted fork: true while a live-text dictation runs with the keys on screen.
+    var isLiveRecording: Bool {
+        get { liveRecordingFlag }
+        set { liveRecordingFlag = newValue; objectWillChange.send() }
     }
 
     /// Present `mode` in the keyboard area.

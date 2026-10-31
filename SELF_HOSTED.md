@@ -62,7 +62,7 @@ git merge upstream/main     # then review the diff before you push
   from the keyboard. Otherwise Dictus works as before (Parakeet v3, text at the end).
 - Logs: `LiveText` probes (counts only, never text) in the debug log.
 - "Keep mic ready" (Settings > Live text) sets the idle window, default 30 min.
-- Step 2 (not done yet): keep the keys on screen while recording, so delete works.
+- Step 2: during a live dictation the keys stay on screen (`KeyboardState.syncAreaModeWithStatus`) and the toolbar mic is the stop button. The app begins the live session BEFORE it writes "recording", so the keyboard can tell.
 - Watch item (memory): the app now holds Parakeet v3 and the streaming model in the
   background. If jumps to the app get MORE frequent, or the first live words after a
   break are slow, skip the Parakeet v3 preload when `LiveDictation.isUsable` and load it
