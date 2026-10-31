@@ -2052,8 +2052,11 @@ extension KeyboardState {
             component: "LiveText", instanceID: session, action: "finished",
             details: "finalTail=\(tail.count) total=\(final.count) inserted=\(inserted.count)"
         ))
-        LiveTextChannel.saveKeyboardProgress(session: session, inserted: final, in: defaults)
+        // The session is over: the channel is cleared, so no later sync can insert
+        // anything, and the keyboard's copy of the text is removed from shared storage.
         LiveTextChannel.clear(in: defaults)
+        LiveTextChannel.clearKeyboardProgress(in: defaults)
+        defaults.synchronize()
 
         PersistentLog.log(.keyboardTextInserted)
         HapticFeedback.textInserted()

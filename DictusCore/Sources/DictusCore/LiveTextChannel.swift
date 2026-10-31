@@ -115,6 +115,13 @@ public enum LiveTextChannel {
         defaults.set(inserted, forKey: keyboardInsertedKey)
     }
 
+    /// Removes the keyboard's copy of the live text once the session is over, so no
+    /// dictated text stays in shared storage.
+    public static func clearKeyboardProgress(in defaults: UserDefaults = AppGroup.defaults) {
+        defaults.removeObject(forKey: keyboardSessionKey)
+        defaults.removeObject(forKey: keyboardInsertedKey)
+    }
+
     /// The part of `transcript` that has not been inserted yet.
     ///
     /// Returns nil when `transcript` does not start with `alreadyInserted`. That should not
