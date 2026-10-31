@@ -9,7 +9,7 @@
 # launchd runs it every 4 hours. It does nothing unless the last good install is
 # more than 5 days old, so it has 2 days to find the phone on Wi-Fi.
 #
-# Run it by hand:   FORCE=1 ~/Library/Application\ Support/DictusAutoSign/autosign.sh
+# Run it by hand:   FORCE=1 ~/Library/Application\ Support/DictusAutoSign/Dictus\ AutoSign.app/Contents/MacOS/dictus-autosign
 # Log:              ~/Library/Application Support/DictusAutoSign/autosign.log
 
 set -euo pipefail
