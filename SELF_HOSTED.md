@@ -44,3 +44,22 @@ Log: `~/Library/Application Support/DictusAutoSign/autosign.log`
 git fetch upstream
 git merge upstream/main     # then review the diff before you push
 ```
+
+## Live text while dictating (fork feature, step 1)
+
+- Model: FluidAudio `StreamingUnifiedAsrManager`, Parakeet Unified 0.6B English,
+  640 ms tier, int8 (`FluidInference/parakeet-unified-en-0.6b-coreml`, about 610 MB).
+  Downloaded from Settings > Live text, with the same downloader as the other models.
+- App: `DictusApp/Audio/LiveDictation.swift`. `UnifiedAudioEngine.onRecordedSamples`
+  feeds it. It publishes the WHOLE transcript so far through `LiveTextChannel`
+  (DictusCore) and a Darwin notification.
+- Keyboard: `KeyboardState.syncLiveText()` inserts only the new tail. Its progress is
+  saved in the App Group, so a restarted keyboard never inserts text twice.
+- Rules: the model only appends. The keyboard never deletes or rewrites. At stop, the
+  hand-off is marked live (`LiveTextChannel.markFinal`), so the keyboard inserts only
+  the missing tail and skips polish and the normal full insert.
+- Used only when: setting on, language English, model installed, dictation started
+  from the keyboard. Otherwise Dictus works as before (Parakeet v3, text at the end).
+- Logs: `LiveText` probes (counts only, never text) in the debug log.
+- "Keep mic ready" (Settings > Live text) sets the idle window, default 30 min.
+- Step 2 (not done yet): keep the keys on screen while recording, so delete works.

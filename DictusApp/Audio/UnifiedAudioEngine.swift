@@ -172,6 +172,10 @@ class UnifiedAudioEngine: ObservableObject {
     /// Accumulated audio samples in 16kHz mono Float32 (WhisperKit/Parakeet expected format).
     private var audioSamples: [Float] = []
 
+    /// Self-hosted fork: receives each block of recorded 16 kHz mono samples, on the main
+    /// thread, while a dictation is recording. Set by `LiveDictation` for live text.
+    var onRecordedSamples: (([Float]) -> Void)?
+
     /// Converter from the hardware format (typically 48kHz mono) to 16kHz mono.
     ///
     /// WHY nonisolated(unsafe): `startEngine()` pre-builds one from the format the input
@@ -288,7 +292,13 @@ class UnifiedAudioEngine: ObservableObject {
     /// 10 minutes balances UX (warm starts feel instant within a normal
     /// "back-and-forth dictation session") against battery drain (3.3%/h
     /// baseline drops to ~0%/h after release).
-    private static let idleReleaseInterval: TimeInterval = 10 * 60
+    ///
+    /// Self-hosted fork: the window is a user setting (Settings > Live text >
+    /// "Keep mic ready"), 30 minutes by default. A longer window means fewer jumps to
+    /// the Dictus app, at about 3.3% battery per hour while it is ready.
+    private static var idleReleaseInterval: TimeInterval {
+        TimeInterval(LiveTextChannel.micReadyMinutes * 60)
+    }
 
     /// Idle window applied when the engine was warmed WITHOUT a preceding
     /// dictation: launch pre-load, `didBecomeActive` re-warm, explicit `warmUp()`.
@@ -298,7 +308,7 @@ class UnifiedAudioEngine: ObservableObject {
     /// than one who just dictated. That is a product call, not an implementation
     /// one, so this ships with the conservative answer (identical windows) and a
     /// single line to change if the maintainer decides otherwise.
-    private static let warmUpIdleReleaseInterval: TimeInterval = idleReleaseInterval
+    private static var warmUpIdleReleaseInterval: TimeInterval { idleReleaseInterval }
 
     /// Sample gating flag read from the audio thread.
     /// WHY nonisolated(unsafe): Read from audio callback thread (single reader pattern).
@@ -1424,6 +1434,7 @@ class UnifiedAudioEngine: ObservableObject {
             // SAMPLE GATE: only accumulate when recording
             guard self.isRecording else { return }
             self.audioSamples.append(contentsOf: samples)
+            self.onRecordedSamples?(samples)
             self.bufferSeconds = Double(self.audioSamples.count) / 16000.0
 
             // Maintain a rolling window of energy values (last 30 = matches barCount in BrandWaveform)

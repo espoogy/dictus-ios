@@ -144,6 +144,7 @@ extension DictationCoordinator {
                 attemptLog: .beforeAudioWarmUp
             )
             PersistentLog.log(.appWhisperKitLoaded(modelName: loadedName))
+            LiveDictation.shared.prewarm()
             deadlineArm.cancel()
 
             // The epoch moved, but that does not by itself mean somebody else owns the
@@ -256,6 +257,7 @@ extension DictationCoordinator {
                 attemptLog: .beforeModelLoad
             )
             PersistentLog.log(.engineWarmUpSuccess(context: "didBecomeActive"))
+            LiveDictation.shared.prewarm()
             // Claim before publishing, as the launch preload does: this warm-up can be
             // abandoned mid-flight too, and `.ready` would then announce an engine that
             // was discarded before it was installed (finding 5).

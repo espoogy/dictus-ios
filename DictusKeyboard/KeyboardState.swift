@@ -423,6 +423,16 @@ class KeyboardState: ObservableObject {
             }
         }
 
+        // Self-hosted fork: live text while dictating. See `LiveTextChannel`.
+        DarwinNotificationCenter.addObserver(
+            for: LiveTextChannel.notification
+        ) { [weak self] in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                MainActor.assumeIsolated { self.syncLiveText() }
+            }
+        }
+
     }
 
     deinit {
@@ -432,6 +442,7 @@ class KeyboardState: ObservableObject {
         DarwinNotificationCenter.removeObserver(for: DarwinNotificationName.statusChanged)
         DarwinNotificationCenter.removeObserver(for: DarwinNotificationName.transcriptionReady)
         DarwinNotificationCenter.removeObserver(for: DarwinNotificationName.waveformUpdate)
+        DarwinNotificationCenter.removeObserver(for: LiveTextChannel.notification)
     }
 
     // MARK: - Watchdog
@@ -684,6 +695,10 @@ class KeyboardState: ObservableObject {
         // must not be skipped by an unrelated exit.
         refreshPolishAvailability()
 
+        // Self-hosted fork: catch up on live text missed while the keyboard was not
+        // running (cold start: the user is still in the Dictus app).
+        MainActor.assumeIsolated { syncLiveText() }
+
         // Same placement argument as the line above (#79): the armed mode is a sticky
         // setting the app can change — block C's mode list unpins and repins — and it
         // has nothing to do with whether this dictation was abandoned, so it must not
@@ -808,6 +823,15 @@ class KeyboardState: ObservableObject {
     /// This matches the standard iOS dictation UX — user speaks, text appears at cursor.
     private func handleTranscriptionReady() {
         logProbe("handleTranscriptionReady", details: sessionDetails())
+
+        // Self-hosted fork: the end of a live session. Its words are already in the
+        // field; insert only the rest, and skip polish and the full insert below.
+        if let liveSession = LiveTextChannel.takeFinal(in: defaults) {
+            refreshFromDefaults()
+            MainActor.assumeIsolated { finishLiveSession(liveSession) }
+            return
+        }
+
         refreshFromDefaults()
 
         if let transcription = defaults.string(forKey: SharedKeys.lastTranscription),
@@ -1962,5 +1986,73 @@ extension KeyboardState {
         )
         guard decision == .presentPreparation else { return nil }
         return loadState == .loading ? "loading" : "cold-cache"
+    }
+}
+
+// MARK: - Live text (self-hosted fork)
+
+extension KeyboardState {
+
+    /// Inserts the part of the live transcript the field does not have yet.
+    ///
+    /// Append-only by design (see `LiveTextChannel`): this never deletes or rewrites
+    /// text. If the user deletes words while recording, they stay deleted, because the
+    /// progress below keeps moving forward through the transcript.
+    @MainActor
+    func syncLiveText() {
+        guard let live = LiveTextChannel.read(in: defaults) else { return }
+        var inserted = ""
+        if let progress = LiveTextChannel.keyboardProgress(in: defaults), progress.session == live.session {
+            inserted = progress.inserted
+        }
+        guard live.text.count > inserted.count else { return }
+        guard let tail = LiveTextChannel.unsentTail(of: live.text, alreadyInserted: inserted) else {
+            logProbe("liveTextMismatch", details: "inserted=\(inserted.count) live=\(live.text.count)")
+            return
+        }
+        guard let proxy = controller?.textDocumentProxy else { return }
+        proxy.insertText(tail)
+        LiveTextChannel.saveKeyboardProgress(session: live.session, inserted: live.text, in: defaults)
+        PersistentLog.log(.diagnosticProbe(
+            component: "LiveText", instanceID: live.session, action: "inserted",
+            details: "added=\(tail.count) total=\(live.text.count)"
+        ))
+    }
+
+    /// The hand-off that ends a live session: insert what is still missing, then reset
+    /// the dictation state the same way `insertDictation` does.
+    @MainActor
+    func finishLiveSession(_ session: String) {
+        syncLiveText()
+
+        let final = defaults.string(forKey: SharedKeys.lastTranscription) ?? ""
+        defaults.removeObject(forKey: SharedKeys.lastTranscription)
+
+        var inserted = ""
+        if let progress = LiveTextChannel.keyboardProgress(in: defaults), progress.session == session {
+            inserted = progress.inserted
+        }
+        let tail = LiveTextChannel.unsentTail(of: final, alreadyInserted: inserted) ?? ""
+        if !tail.isEmpty {
+            controller?.textDocumentProxy.insertText(tail)
+        }
+        PersistentLog.log(.diagnosticProbe(
+            component: "LiveText", instanceID: session, action: "finished",
+            details: "finalTail=\(tail.count) total=\(final.count) inserted=\(inserted.count)"
+        ))
+        LiveTextChannel.saveKeyboardProgress(session: session, inserted: final, in: defaults)
+        LiveTextChannel.clear(in: defaults)
+
+        PersistentLog.log(.keyboardTextInserted)
+        HapticFeedback.textInserted()
+        onTranscriptionInserted?()
+
+        stopWatchdog()
+        dictationStatus = .idle
+        waveformEnergy = []
+        recordingElapsed = 0
+        assignStatusMessage(nil, reason: "liveTextFinished")
+        lastTranscription = nil
+        activeSessionID = nil
     }
 }

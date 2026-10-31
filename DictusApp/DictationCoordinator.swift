@@ -687,6 +687,7 @@ class DictationCoordinator: ObservableObject {
                     updateStatus(.recording)
                     LiveActivityManager.shared.transitionToRecording()
                     try audioEngine.startRecording()
+                    if dictationOrigin == .keyboard { LiveDictation.shared.begin(engine: audioEngine) }
                     PersistentLog.log(.audioEngineStarted)
                     schedulePolishPrewarm()
                     await verifyAudioFlow()
@@ -732,6 +733,7 @@ class DictationCoordinator: ObservableObject {
                     }
                     guard mayReport(session, "cold start") else { return }
                     try audioEngine.startRecording()
+                    if dictationOrigin == .keyboard { LiveDictation.shared.begin(engine: audioEngine) }
                     updateStatus(.recording)
                     LiveActivityManager.shared.transitionToRecording()
                     PersistentLog.log(.audioEngineStarted)
@@ -742,6 +744,11 @@ class DictationCoordinator: ObservableObject {
                     endColdStartAssertion(reason: "engine-started")
                     schedulePolishPrewarm()
                     await verifyAudioFlow()
+
+                    // Self-hosted fork: with live text, the streaming model is the one that
+                    // must load now. Loading the batch model too would hold the Neural
+                    // Engine and delay the first live words. It loads at stop if needed.
+                    if LiveDictation.shared.isActive { return }
 
                     // Load the transcription model in parallel while recording
                     self.setModelLoadState(.loading, reason: "cold-start-load")
@@ -853,6 +860,36 @@ class DictationCoordinator: ObservableObject {
             defer { self.isTranscribingInFlight = false }
             do {
                 let samples = audioEngine.collectSamples()
+
+                // Self-hosted fork: a live session already put the words in the text
+                // field. Hand off its final text, marked live, so the keyboard inserts
+                // only what it has not inserted yet. No second transcription.
+                if let liveSession = LiveDictation.shared.currentSessionID,
+                   let liveText = await LiveDictation.shared.finish() {
+                    let text = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !text.isEmpty else {
+                        LiveTextChannel.clear()
+                        PersistentLog.log(.dictationFailed(error: "live session produced no words"))
+                        guard mayReport(session, "empty live recording") else { return }
+                        handleError(DictationFailureMessage.noWordsDetected)
+                        return
+                    }
+                    updateStatus(.transcribing)
+                    LiveActivityManager.shared.transitionToTranscribing()
+                    LiveActivityManager.shared.startRecordingWatchdog()
+                    SoundFeedbackService.playRecordStop()
+                    guard mayReport(session, "live result") else { return }
+                    handOffToKeyboard(
+                        transcript: DictationTranscript(engine: liveText, corrected: liveText),
+                        languagePolicy: TranscriptionLanguagePolicy.snapshot(),
+                        smartMode: SmartModeStore.resolveArmedMode(),
+                        audioDuration: Double(samples.count) / 16000.0,
+                        session: session,
+                        liveSession: liveSession
+                    )
+                    cleanupRecordingKeys()
+                    return
+                }
 
                 guard !samples.isEmpty else {
                     // Logged before the session gate, like `recordingTooShort` below:
@@ -1008,6 +1045,7 @@ class DictationCoordinator: ObservableObject {
 
         // Discard samples but keep engine alive for next recording
         _ = audioEngine.collectSamples()
+        LiveDictation.shared.cancel()
 
         // Reset all state
         bufferEnergy = []

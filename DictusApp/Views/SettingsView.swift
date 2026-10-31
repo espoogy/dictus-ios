@@ -62,6 +62,13 @@ struct SettingsView: View {
     @AppStorage(SharedKeys.liveActivityEnabled, store: UserDefaults(suiteName: AppGroup.identifier))
     private var liveActivityEnabled = true
 
+    /// Self-hosted fork: live text while dictating, and how long the mic stays ready.
+    @AppStorage(LiveTextChannel.enabledKey, store: UserDefaults(suiteName: AppGroup.identifier))
+    private var liveTextEnabled = true
+    @AppStorage(LiveTextChannel.micReadyMinutesKey, store: UserDefaults(suiteName: AppGroup.identifier))
+    private var micReadyMinutes = LiveTextChannel.defaultMicReadyMinutes
+    @ObservedObject private var liveDictation = LiveDictation.shared
+
     /// Post-STT polish toggle (issue #141). Off by default — opt-in measurement at round 1.
     @AppStorage(SharedKeys.polishEnabled, store: UserDefaults(suiteName: AppGroup.identifier))
     private var polishEnabled = false
@@ -233,6 +240,54 @@ struct SettingsView: View {
                         }
                     }
                 }
+            }
+
+            // Self-hosted fork: live text
+            Section {
+                Toggle("Live text while dictating", isOn: $liveTextEnabled)
+                    .onChange(of: liveTextEnabled) { _, enabled in
+                        if enabled { liveDictation.prewarm() }
+                    }
+
+                if liveDictation.isInstalled {
+                    HStack {
+                        Text("Live text model")
+                        Spacer()
+                        Text("Installed")
+                            .foregroundStyle(.secondary)
+                    }
+                    Button("Delete live text model", role: .destructive) {
+                        liveDictation.deleteModel()
+                    }
+                } else if let fraction = liveDictation.downloadFraction {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Downloading live text model…")
+                        ProgressView(value: fraction)
+                            .tint(.dictusAccent)
+                        Text("\(Int(fraction * 100))%")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Button("Download live text model (about 610 MB)") {
+                        liveDictation.download()
+                    }
+                    if let error = liveDictation.downloadError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.dictusRecording)
+                    }
+                }
+
+                Picker("Keep mic ready", selection: $micReadyMinutes) {
+                    ForEach(LiveTextChannel.micReadyChoices, id: \.self) { minutes in
+                        Text(minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h").tag(minutes)
+                    }
+                }
+            } header: {
+                Text("Live text")
+            } footer: {
+                Text("Live text puts words in the text field while you speak, in English only. You can delete words and keep talking. \"Keep mic ready\" is how long Dictus stays ready after you dictate. Longer means fewer jumps to the Dictus app, but uses about 3% battery per hour.")
             }
 
             // Section 1: Transcription

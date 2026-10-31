@@ -203,7 +203,8 @@ extension DictationCoordinator {
                            languagePolicy: TranscriptionLanguagePolicy,
                            smartMode: SmartModeResolution,
                            audioDuration: TimeInterval,
-                           session: Int) {
+                           session: Int,
+                           liveSession: String? = nil) {
         // The text the keyboard will type: the corrected one, not the engine's.
         // `transcript.engineRaw` travels beside it purely to be recorded (#80).
         let rawText = transcript.text
@@ -289,6 +290,9 @@ extension DictationCoordinator {
         // not two `removeObject`s: a flag outliving its text would claim an insertion
         // for whatever landed next.
         PolishedTextChannel.clear(in: defaults)
+        // Self-hosted fork: tell the keyboard this hand-off ends a live session, so it
+        // inserts only the words it has not inserted yet.
+        if let liveSession { LiveTextChannel.markFinal(session: liveSession, in: defaults) }
         defaults.synchronize()
 
         DarwinNotificationCenter.post(DarwinNotificationName.statusChanged)
@@ -299,6 +303,8 @@ extension DictationCoordinator {
             DictusLogger.app.info("Transcription handed to keyboard: \(rawText, privacy: .private)")
         }
 
+        // Live text is already in the field and may have been edited: never polish it.
+        guard liveSession == nil else { return }
         beginPolishHandoff(session: session, preview: rawText)
     }
 
