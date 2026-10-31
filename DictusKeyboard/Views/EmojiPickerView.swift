@@ -302,7 +302,7 @@ struct EmojiPickerView: View {
 
     private func performSearch(query: String) -> [String] {
         let q = query.lowercased()
-        let language = AppGroup.defaults.string(forKey: SharedKeys.language) ?? "fr"
+        let language = AppGroup.defaults.string(forKey: SharedKeys.language) ?? "en"
 
         if language == "fr" {
             return searchFrench(query: q)

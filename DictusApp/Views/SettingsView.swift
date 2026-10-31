@@ -24,7 +24,7 @@ struct SettingsView: View {
     // MARK: - Preferences (App Group persisted)
 
     @AppStorage(SharedKeys.language, store: UserDefaults(suiteName: AppGroup.identifier))
-    private var language = "fr"
+    private var language = "en"
 
     /// Transcription (STT) language mode, decoupled from the keyboard language (#226).
     /// Stored as its raw App Group encoding: "follow" (default), "auto", or an

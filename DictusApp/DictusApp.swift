@@ -231,7 +231,7 @@ struct DictusApp: App {
         // set a language preference (e.g., "en"), don't overwrite it.
         let defaults = UserDefaults(suiteName: AppGroup.identifier)
         if defaults?.string(forKey: SharedKeys.language) == nil {
-            defaults?.set("fr", forKey: SharedKeys.language)
+            defaults?.set("en", forKey: SharedKeys.language)
         }
         // Freeze the layout an updating install is already typing on, before anything can
         // change the active language (#272). The migration is idempotent and also runs from
