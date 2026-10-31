@@ -52,7 +52,7 @@ final class BackgroundModelDownloadService: NSObject, @unchecked Sendable {
 
     /// Stable across launches, which is the whole point: recreating a session with this
     /// identifier is what reconnects the app to transfers the system kept running.
-    static let sessionIdentifier = "com.pivi.dictus.model-download"
+    static let sessionIdentifier = "io.aequari.dictus.model-download"
 
     /// Bytes per aligned range request.
     ///

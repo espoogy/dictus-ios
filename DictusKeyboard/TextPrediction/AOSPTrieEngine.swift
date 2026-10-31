@@ -16,7 +16,7 @@ final class AOSPTrieEngine {
 
     /// Serial queue for dictionary loading. Ensures only one load runs at a time.
     private let loadQueue = DispatchQueue(
-        label: "com.pivi.dictus.aosptrie-load",
+        label: "io.aequari.dictus.aosptrie-load",
         qos: .userInitiated
     )
 
@@ -246,7 +246,7 @@ final class AOSPTrieEngine {
         print("[AOSPTrieEngine] N-grams \(language): \(success ? "loaded" : "failed") (\(fileSize / 1024) KiB)")
 
         // Write diagnostic to App Group so app logs can confirm n-gram loading
-        if let defaults = UserDefaults(suiteName: "group.solutions.pivi.dictus") {
+        if let defaults = UserDefaults(suiteName: "group.io.aequari.dictus") {
             defaults.set("lang=\(language) ok=\(success) size=\(fileSize)", forKey: "ngramDiagnostic")
         }
     }

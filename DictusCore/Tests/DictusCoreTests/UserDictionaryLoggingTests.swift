@@ -15,7 +15,7 @@ import XCTest
 /// file under them moves to a temp path, through `fileURLOverrideForTesting`.
 ///
 /// WHY not the App Group container: on a Mac it resolves under
-/// `~/Library/Group Containers/group.solutions.pivi.dictus`, a folder macOS guards
+/// `~/Library/Group Containers/group.io.aequari.dictus`, a folder macOS guards
 /// for the app that owns it. A test host without Full Disk Access gets its `open()`
 /// held on a prompt that never resolves, and the whole `swift test` run hangs there.
 ///

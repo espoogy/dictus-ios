@@ -118,6 +118,7 @@ public final class ProStatusManager: ObservableObject {
         // feature is still being built.
         if PremiumFlags.debugProEntitlementForced { return true }
         #endif
-        return AppGroup.defaults.bool(forKey: SharedKeys.proActive)
+        // Self-hosted fork: Pro (History, Vocabulary) is always on in this build.
+        return true
     }
 }

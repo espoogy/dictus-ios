@@ -6,30 +6,30 @@ import Foundation
 /// After receiving a notification, read the actual data from AppGroup.defaults.
 public enum DarwinNotificationName {
     /// Posted by DictusApp when transcription result is written to App Group.
-    public static let transcriptionReady = "com.pivi.dictus.transcriptionReady" as CFString
+    public static let transcriptionReady = "io.aequari.dictus.transcriptionReady" as CFString
 
     /// Posted by DictusApp when dictation status changes.
-    public static let statusChanged = "com.pivi.dictus.statusChanged" as CFString
+    public static let statusChanged = "io.aequari.dictus.statusChanged" as CFString
 
     /// Posted by keyboard extension to request DictusApp stop recording (keyboard -> app).
-    public static let stopRecording = "com.pivi.dictus.stopRecording" as CFString
+    public static let stopRecording = "io.aequari.dictus.stopRecording" as CFString
 
     /// Posted by keyboard extension to request DictusApp cancel recording (keyboard -> app).
-    public static let cancelRecording = "com.pivi.dictus.cancelRecording" as CFString
+    public static let cancelRecording = "io.aequari.dictus.cancelRecording" as CFString
 
     /// Posted by DictusApp when waveform energy data is written to App Group (app -> keyboard).
-    public static let waveformUpdate = "com.pivi.dictus.waveformUpdate" as CFString
+    public static let waveformUpdate = "io.aequari.dictus.waveformUpdate" as CFString
 
     /// Posted by keyboard extension to request DictusApp start recording (keyboard -> app).
     /// Used when the app is already running in background — avoids opening the app via URL.
     /// Fallback: if app doesn't respond within 500ms, keyboard opens dictus://dictate URL.
-    public static let startRecording = "com.pivi.dictus.startRecording" as CFString
+    public static let startRecording = "io.aequari.dictus.startRecording" as CFString
 
     /// Posted by DictusApp when AVAudioSession is interrupted (phone call, Siri, etc.)
     /// or when media services were reset by the OS. Consumers tear down dependent
     /// state — Live Activity ends, in-flight transcription is cancelled, the keyboard
     /// can show a "session interrupted" indicator if desired (issue #106).
-    public static let audioSessionInterrupted = "com.pivi.dictus.audioSessionInterrupted" as CFString
+    public static let audioSessionInterrupted = "io.aequari.dictus.audioSessionInterrupted" as CFString
 
     /// Posted by the keyboard extension when a polish engine is about to run
     /// (keyboard -> app, issue #361).
@@ -40,7 +40,7 @@ public enum DarwinNotificationName {
     /// the LLM stage. It fires only once a model is really about to run, for the
     /// reason #267 established — the pass-through paths return in about a
     /// millisecond and a stage announced for them is a flicker.
-    public static let polishWillRun = "com.pivi.dictus.polishWillRun" as CFString
+    public static let polishWillRun = "io.aequari.dictus.polishWillRun" as CFString
 
     /// Posted by the keyboard extension when the tail of a dictation is finished —
     /// polished or not, inserted or refused (keyboard -> app, issue #361).
@@ -48,13 +48,13 @@ public enum DarwinNotificationName {
     /// DictusApp defers `endWithResult` until this arrives, so the Live Activity
     /// ends on the real end of the dictation rather than on the App Group write that
     /// hands it over. A 10 s watchdog covers the keyboard never getting here.
-    public static let polishDidFinish = "com.pivi.dictus.polishDidFinish" as CFString
+    public static let polishDidFinish = "io.aequari.dictus.polishDidFinish" as CFString
 
     /// Posted by DictusApp when the warm-state engine is released after the idle
     /// timeout (issue #106 Phase B). Consumers should treat the next dictation
     /// request as a cold start. Used to dismiss the Dynamic Island standby indicator
     /// so the UI no longer suggests "ready to dictate" when the engine is asleep.
-    public static let warmStateReleased = "com.pivi.dictus.warmStateReleased" as CFString
+    public static let warmStateReleased = "io.aequari.dictus.warmStateReleased" as CFString
 }
 
 /// Global callback registry for Darwin notifications.

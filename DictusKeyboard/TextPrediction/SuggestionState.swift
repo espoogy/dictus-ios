@@ -81,7 +81,7 @@ class SuggestionState: ObservableObject {
     /// WHY serial: Ensures suggestion computations don't race each other.
     /// WHY .userInitiated: Suggestions are user-facing but not blocking the touch pipeline.
     private let suggestionQueue = DispatchQueue(
-        label: "com.pivi.dictus.suggestions",
+        label: "io.aequari.dictus.suggestions",
         qos: .userInitiated
     )
 

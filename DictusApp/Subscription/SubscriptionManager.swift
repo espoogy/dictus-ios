@@ -46,6 +46,10 @@ final class SubscriptionManager: ObservableObject {
         // WHY: If user purchased on another device or subscription renewed
         // while the app was killed, Transaction.updates delivers those
         // transactions on next launch. Missing them = stale Pro status.
+        //
+        // Self-hosted fork: Pro is always on and nothing is for sale, so do not
+        // contact the App Store at all.
+        guard PremiumFlags.paywallVisible else { return }
         transactionListener = listenForTransactions()
         Task { await loadProducts() }
         // Check current entitlements on launch (passive, no sign-in prompt)

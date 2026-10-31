@@ -599,7 +599,7 @@ private struct KeyboardDetectingTextField: UIViewRepresentable {
                 return
             }
 
-            let isDictus = identifier.contains("com.pivi.dictus")
+            let isDictus = identifier.contains("io.aequari.dictus")
             DispatchQueue.main.async {
                 self.parent.onKeyboardChange(isDictus)
             }

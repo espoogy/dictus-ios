@@ -26,6 +26,10 @@ public enum PremiumFlags {
     /// `false` = the app looks like there is no subscription at all.
     public static let paywallVisible = false
 
+    /// Self-hosted fork: Smart Mode (Apple Intelligence rewrite) is switched off and
+    /// hidden everywhere. FeatureGate reports it disabled and the keyboard fan never opens.
+    public static let smartModeHidden = true
+
     /// Last day of the lifetime founder window, or `nil` while it is not
     /// scheduled (#350).
     ///

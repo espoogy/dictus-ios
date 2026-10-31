@@ -452,7 +452,7 @@ struct KeyboardSetupPage: View {
     /// This is the only public API to detect installed keyboards. It returns
     /// an array of UITextInputMode objects whose `value(forKey: "identifier")`
     /// contains the bundle identifier. We look for our keyboard extension's
-    /// bundle ID "com.pivi.dictus.keyboard".
+    /// bundle ID "io.aequari.dictus.keyboard".
     ///
     /// WHY defensive coding:
     /// UITextInputMode.activeInputModes can be unstable during rapid scenePhase
@@ -467,7 +467,7 @@ struct KeyboardSetupPage: View {
             guard let identifier = mode.value(forKey: "identifier") as? String else {
                 continue
             }
-            if identifier.contains("com.pivi.dictus") {
+            if identifier.contains("io.aequari.dictus") {
                 PersistentLog.log(.onboardingKeyboardDetected(identifier: identifier))
                 keyboardDetected = true
                 return

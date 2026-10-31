@@ -270,6 +270,8 @@ final class KeyboardSmartModeState: ObservableObject {
     @discardableResult
     func open() -> Bool {
         let keyboard = KeyboardState.shared
+        // Self-hosted fork: Smart Mode is hidden, so the fan never opens.
+        guard !PremiumFlags.smartModeHidden else { return false }
         guard !keyboard.dictationStatus.ownsKeyboardArea else {
             keyboard.logProbe("smartModeFanRefused", details: "reason=dictation-in-flight")
             return false

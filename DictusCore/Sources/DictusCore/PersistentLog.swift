@@ -134,7 +134,7 @@ public enum PersistentLog {
 
     /// Serial queue for ordering writes within a single process.
     /// Cross-process safety is handled by NSFileCoordinator.
-    private static let writeQueue = DispatchQueue(label: "com.pivi.dictus.persistentlog", qos: .utility)
+    private static let writeQueue = DispatchQueue(label: "io.aequari.dictus.persistentlog", qos: .utility)
 
     /// Internal, not private: `AutocorrectDebugLog` appends to this same file and
     /// must follow the test redirect below along with everything else.

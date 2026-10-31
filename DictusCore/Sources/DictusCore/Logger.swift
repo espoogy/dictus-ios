@@ -5,7 +5,7 @@ import os.log
 /// Usage: DictusLogger.keyboard.debug("message")
 @available(iOS 14.0, macOS 11.0, *)
 public enum DictusLogger {
-    public static let app = Logger(subsystem: "com.pivi.dictus", category: "app")
-    public static let keyboard = Logger(subsystem: "com.pivi.dictus", category: "keyboard")
-    public static let appGroup = Logger(subsystem: "com.pivi.dictus", category: "appGroup")
+    public static let app = Logger(subsystem: "io.aequari.dictus", category: "app")
+    public static let keyboard = Logger(subsystem: "io.aequari.dictus", category: "keyboard")
+    public static let appGroup = Logger(subsystem: "io.aequari.dictus", category: "appGroup")
 }

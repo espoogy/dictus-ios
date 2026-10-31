@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.solutions.pivi.dictus</string>
+		<string>group.io.aequari.dictus</string>
 	</array>
 </dict>
 </plist>
