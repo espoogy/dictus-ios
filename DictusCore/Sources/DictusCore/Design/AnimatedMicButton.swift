@@ -147,7 +147,7 @@ public struct AnimatedMicButton: View {
                 Image(systemName: "mic.fill")
                     .font(.system(size: isPill ? 14 : 16, weight: .medium))
                     .foregroundColor(.white)
-                    .scaleEffect(status == .recording ? pulseScale * 0.9 + 0.1 : 1.0)
+                    .scaleEffect(status == .recording ? recordingIconScale : 1.0)
 
                 // Armed Smart Mode, last so nothing draws over it
                 armedBadge
@@ -210,6 +210,18 @@ public struct AnimatedMicButton: View {
 
     private var badgeDiameter: CGFloat { isPill ? 18 : 24 }
 
+    /// Self-hosted fork: a subtler recording pulse for the toolbar pill. `pulseScale`
+    /// animates 1.0 to 1.3; the pill maps it to ring brightness 0.25 to 0.65 and a
+    /// small icon pulse, and keeps its size, so nothing is clipped.
+    private var recordingRingOpacity: Double {
+        guard isPill else { return 0.5 }
+        return 0.25 + 0.4 * Double((pulseScale - 1.0) / 0.3)
+    }
+
+    private var recordingIconScale: CGFloat {
+        isPill ? 1.0 + (pulseScale - 1.0) * 0.25 : pulseScale * 0.9 + 0.1
+    }
+
     /// Placed against the corner of the *button*, not of the ring: the ring is a glow
     /// and has no edge the eye reads as the button's own.
     private var badgeOffset: CGSize {
@@ -241,10 +253,12 @@ public struct AnimatedMicButton: View {
                 .dictusGlass(in: isPill ? AnyShape(Capsule()) : AnyShape(Circle()))
                 .overlay(
                     mainShape()
-                        .stroke(Color.dictusRecording.opacity(0.5), lineWidth: 3)
+                        .stroke(Color.dictusRecording.opacity(recordingRingOpacity), lineWidth: isPill ? 2 : 3)
                         .frame(width: ringWidth, height: ringHeight)
                 )
-                .scaleEffect(pulseScale)
+                // Self-hosted fork: the toolbar pill has no room to grow (the ring was
+                // clipped), so it pulses in brightness instead of size.
+                .scaleEffect(isPill ? 1.0 : pulseScale)
 
         case .transcribing, .processing, .requested:
             // Static glass ring during transcription and the LLM stage
