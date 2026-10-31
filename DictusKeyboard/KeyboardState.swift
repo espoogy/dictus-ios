@@ -856,6 +856,13 @@ class KeyboardState: ObservableObject {
             // but cross-App-Group propagation can lag on-device.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 guard let self = self else { return }
+                // Self-hosted fork: the live marker can arrive late too, together with
+                // the text. Check it again, or the full text would be inserted on top of
+                // the live words.
+                if let liveSession = LiveTextChannel.takeFinal(in: self.defaults) {
+                    MainActor.assumeIsolated { self.finishLiveSession(liveSession) }
+                    return
+                }
                 if let transcription = self.defaults.string(forKey: SharedKeys.lastTranscription),
                    !transcription.isEmpty {
                     self.defaults.removeObject(forKey: SharedKeys.lastTranscription)
@@ -2025,7 +2032,12 @@ extension KeyboardState {
     func finishLiveSession(_ session: String) {
         syncLiveText()
 
-        let final = defaults.string(forKey: SharedKeys.lastTranscription) ?? ""
+        // The app publishes the final transcript to the live channel before it marks the
+        // hand-off, so the channel is a safe stand-in if the hand-off text is late.
+        var final = defaults.string(forKey: SharedKeys.lastTranscription) ?? ""
+        if final.isEmpty, let live = LiveTextChannel.read(in: defaults), live.session == session {
+            final = live.text
+        }
         defaults.removeObject(forKey: SharedKeys.lastTranscription)
 
         var inserted = ""

@@ -63,3 +63,8 @@ git merge upstream/main     # then review the diff before you push
 - Logs: `LiveText` probes (counts only, never text) in the debug log.
 - "Keep mic ready" (Settings > Live text) sets the idle window, default 30 min.
 - Step 2 (not done yet): keep the keys on screen while recording, so delete works.
+- Watch item (memory): the app now holds Parakeet v3 and the streaming model in the
+  background. If jumps to the app get MORE frequent, or the first live words after a
+  break are slow, skip the Parakeet v3 preload when `LiveDictation.isUsable` and load it
+  only as a fallback at stop.
+- Known: the first live chunk has no leading space (same as the normal insert).

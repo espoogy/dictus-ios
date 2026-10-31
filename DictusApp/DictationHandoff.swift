@@ -226,6 +226,10 @@ extension DictationCoordinator {
             text: rawText, policy: languagePolicy, duration: audioDuration
         ))?.id
         status = .ready
+        // Self-hosted fork: tell the keyboard this hand-off ends a live session, so it
+        // inserts only the words it has not inserted yet. Written BEFORE the text, so a
+        // keyboard that can see the text can also see this marker.
+        if let liveSession { LiveTextChannel.markFinal(session: liveSession, in: defaults) }
         defaults.set(rawText, forKey: SharedKeys.lastTranscription)
         // Only when the vocabulary pass actually changed something (#80). Absent is
         // the normal case and reads as "identical to the text above", so nothing is
@@ -290,9 +294,6 @@ extension DictationCoordinator {
         // not two `removeObject`s: a flag outliving its text would claim an insertion
         // for whatever landed next.
         PolishedTextChannel.clear(in: defaults)
-        // Self-hosted fork: tell the keyboard this hand-off ends a live session, so it
-        // inserts only the words it has not inserted yet.
-        if let liveSession { LiveTextChannel.markFinal(session: liveSession, in: defaults) }
         defaults.synchronize()
 
         DarwinNotificationCenter.post(DarwinNotificationName.statusChanged)
