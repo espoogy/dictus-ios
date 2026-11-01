@@ -305,7 +305,21 @@ extension DictationCoordinator {
         }
 
         // Live text is already in the field and may have been edited: never polish it.
-        guard liveSession == nil else { return }
+        //
+        // The polish hand-off is also what normally ends the dictation: when the keyboard
+        // reports back, the app ends the Live Activity and returns to `.idle`. Without
+        // it, the Island and the app's recording screen stayed on "recording" forever.
+        // So a live hand-off ends both itself, shortly after the keyboard has the text.
+        guard liveSession == nil else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self, self.mayReport(session, "live dictation end") else { return }
+                LiveActivityManager.shared.endWithResult(preview: rawText)
+                if PolishHandoffConclusion.returnsToIdle(from: self.status) {
+                    self.updateStatus(.idle)
+                }
+            }
+            return
+        }
         beginPolishHandoff(session: session, preview: rawText)
     }
 
