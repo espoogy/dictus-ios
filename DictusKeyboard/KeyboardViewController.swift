@@ -69,7 +69,8 @@ class KeyboardViewController: UIInputViewController {
     private var hostingBottomToInputBottom: NSLayoutConstraint?
 
     /// Fixed toolbar height matching ToolbarView (52pt: 48pt content + 4pt top padding).
-    private let toolbarHeight: CGFloat = 52
+    // Self-hosted fork: 46 (was 52) for a slightly shorter keyboard. Keep the three copies equal.
+    private let toolbarHeight: CGFloat = 46
 
     /// Whether viewWillAppear has fired at least once. Guards the Combine handler
     /// from changing hosting height before the controller is registered with KeyboardState.
@@ -955,7 +956,13 @@ class KeyboardViewController: UIInputViewController {
         // divided across 4 row cells (+2pt per row), making each visible key 2.3pt
         // taller than Apple's. Setting to 0 restores Apple-matched cell height (#117).
         let bottomPadding: CGFloat = 0
-        let total = keyGridHeight + toolbarHeight + bottomPadding
+        // Self-hosted fork: 8 pt off the key grid on iPhone in portrait (2 pt per row).
+        // With the 4.5 pt key margins this keeps the keys at their original height and
+        // removes the extra space. A fixed value, set once: `heightConstraint` is still
+        // never changed at runtime (#166).
+        let isPhonePortrait = traitCollection.userInterfaceIdiom == .phone && !deviceContext.isLandscape
+        let forkGridTrim: CGFloat = isPhonePortrait ? 8 : 0
+        let total = keyGridHeight - forkGridTrim + toolbarHeight + bottomPadding
         let screen = UIScreen.main.bounds.size
         PersistentLog.log(.diagnosticProbe(
             component: "KeyboardViewController",

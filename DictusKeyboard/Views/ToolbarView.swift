@@ -193,7 +193,8 @@ struct ToolbarView: View {
     /// second literal 52 would be a silent one-notch offset on every row boundary.
     /// `KeyboardRootView` and `KeyboardViewController` hold their own copies for
     /// their own layout; this one belongs to the bar itself.
-    static let toolbarHeight: CGFloat = 52
+    // Self-hosted fork: 46 (was 52) for a slightly shorter keyboard. Keep the three copies equal.
+    static let toolbarHeight: CGFloat = 46
 
     // MARK: - Presentations
 
