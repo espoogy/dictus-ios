@@ -89,10 +89,11 @@ public struct AnimatedMicButton: View {
 
     /// Circle mode: 72pt diameter. Pill mode: 56x36 capsule for keyboard toolbar.
     private var buttonWidth: CGFloat { isPill ? 56 : 72 }
-    private var buttonHeight: CGFloat { isPill ? 36 : 72 }
-    // Self-hosted fork: pill ring 62x42 (was 66x46) so it fits the 46 pt toolbar.
-    private var ringWidth: CGFloat { isPill ? 62 : 92 }
-    private var ringHeight: CGFloat { isPill ? 42 : 92 }
+    // Self-hosted fork: pill 30 (was 36) for the shorter toolbar.
+    private var buttonHeight: CGFloat { isPill ? 30 : 72 }
+    // Self-hosted fork: pill ring 60x34 (was 66x46) so it fits the 34 pt toolbar.
+    private var ringWidth: CGFloat { isPill ? 60 : 92 }
+    private var ringHeight: CGFloat { isPill ? 34 : 92 }
 
     /// Returns Capsule or Circle based on isPill.
     /// WHY AnyShape: @ViewBuilder wraps conditionals in _ConditionalContent which

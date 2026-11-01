@@ -179,9 +179,8 @@ struct ToolbarView: View {
             }
         }
         .padding(.horizontal, 12)
-        // Push content down so the mic ring/glow doesn't get clipped by the
-        // iOS keyboard container's native top border (~2pt separator).
-        .padding(.top, 4)
+        // Self-hosted fork: no top padding. iOS already leaves a strip above the
+        // keyboard, so the buttons sit right at the top of our area.
         // WHY 52pt: The AnimatedMicButton pill (36pt tall) has ring/glow effects
         // extending to 46pt. With 4pt top padding, 52pt total provides enough
         // breathing room above and below the pill without clipping.
@@ -193,8 +192,8 @@ struct ToolbarView: View {
     /// second literal 52 would be a silent one-notch offset on every row boundary.
     /// `KeyboardRootView` and `KeyboardViewController` hold their own copies for
     /// their own layout; this one belongs to the bar itself.
-    // Self-hosted fork: 46 (was 52) for a slightly shorter keyboard. Keep the three copies equal.
-    static let toolbarHeight: CGFloat = 46
+    // Self-hosted fork: 34 (was 52) for a shorter keyboard. Keep the three copies equal.
+    static let toolbarHeight: CGFloat = 34
 
     // MARK: - Presentations
 
@@ -222,19 +221,14 @@ struct ToolbarView: View {
     /// for the same duration. Sharing the slot costs visibility while the user is
     /// mid-word, and that is the cheapest of the three prices.
     private var dictationBar: some View {
+        // Self-hosted fork: no menu or emoji button (iOS shows its own emoji key under
+        // the keyboard). The bar holds the suggestions and messages, plus the red stop
+        // mic while a live dictation runs.
         HStack {
-            if !centreSlot.evictsHamburger {
-                hamburgerButton
-            }
-
             centreSlotContent
 
-            // Self-hosted fork: the right slot shows the emoji button. While a live
-            // dictation runs it shows the red mic instead, which is the stop button.
             if micStopsRecording {
                 micPill
-            } else {
-                emojiButton
             }
         }
     }
@@ -682,9 +676,9 @@ struct ToolbarView: View {
             .background(
                 Capsule().fill(Color.dictusAccent.opacity(0.12))
             )
-            // Same split as `barIcon`: the capsule is what the eye sees, the 44 pt
-            // frame is what a finger hits.
-            .frame(height: 44)
+            // Same split as `barIcon`: the capsule is what the eye sees, the bar-high
+            // frame is what a finger hits (self-hosted fork: was 44, past the bar).
+            .frame(height: Self.toolbarHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(GlassPressStyle())
@@ -755,8 +749,16 @@ struct ToolbarView: View {
     /// visual echo of them, not a shared constant to be refactored away.
     private static let micPillWidth: CGFloat = 56
 
+    /// Self-hosted fork: flat button colour, close to the key colour in both modes.
+    private static let flatButtonFill = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.18)
+            : UIColor(white: 1.0, alpha: 0.85)
+    })
+
     /// Diameter of the round icon buttons, and the height of every bar control.
-    private var iconDiameter: CGFloat { 36 }
+    // Self-hosted fork: 30 (was 36) for a shorter bar.
+    private var iconDiameter: CGFloat { 30 }
 
     /// Shape of a bar icon's glass backing.
     private enum BarIconShape { case circle, capsule }
@@ -789,8 +791,13 @@ struct ToolbarView: View {
             .font(.system(size: size, weight: .medium))
             .foregroundColor(.dictusPillIconSecondary)
             .frame(width: width, height: iconDiameter)
-            .dictusGlass(in: shape == .capsule ? AnyShape(Capsule()) : AnyShape(Circle()))
-            .frame(width: max(width, 44), height: 44)
+            // Self-hosted fork: a flat fill instead of Liquid Glass. The glass shadow was
+            // clipped by the iOS-owned strip above the keyboard.
+            .background(
+                (shape == .capsule ? AnyShape(Capsule()) : AnyShape(Circle()))
+                    .fill(Self.flatButtonFill)
+            )
+            .frame(width: max(width, 44), height: Self.toolbarHeight)
             .contentShape(Rectangle())
     }
 
@@ -823,9 +830,9 @@ struct ToolbarView: View {
                     Capsule().fill(Color.white)
                 )
                 .shadow(color: .black.opacity(0.18), radius: 3, x: 0, y: 1)
-                // The pill stays 28 pt tall; only the touch target grows to 44.
+                // The pill stays 28 pt tall; the touch target fills the bar.
                 // See `barIcon` for why the two are separated.
-                .frame(height: 44)
+                .frame(height: Self.toolbarHeight)
                 .contentShape(Rectangle())
         }
         .buttonStyle(GlassPressStyle())

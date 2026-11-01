@@ -51,7 +51,7 @@ struct SuggestionBarView: View {
                     } label: {
                         slotLabel(suggestion, at: index)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 36)
+                            .frame(height: 30)  // self-hosted fork: was 36
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -92,7 +92,7 @@ struct SuggestionBarView: View {
             //   All equal weight -- no "auto-applied" word, all are suggestions
             // This matches standard iOS keyboard suggestion bar behavior.
             Text(displayText(suggestion, at: index))
-                .font(.system(size: 15))
+                .font(.system(size: 14))  // self-hosted fork: was 15
                 .fontWeight(fontWeight(at: index))
                 .foregroundColor(Color(.label))
         }
@@ -108,14 +108,14 @@ struct SuggestionBarView: View {
     private func undoChip(word: String) -> some View {
         HStack(spacing: 5) {
             Image(systemName: "arrow.uturn.backward")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))  // self-hosted fork: was 12
             Text(word)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))  // self-hosted fork: was 15
                 .lineLimit(1)
         }
         .foregroundColor(.dictusAccent)
         .frame(maxWidth: .infinity)
-        .frame(height: 36)
+        .frame(height: 30)  // self-hosted fork: was 36
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.dictusAccent.opacity(undoPulseActive ? 0.35 : 0.12))

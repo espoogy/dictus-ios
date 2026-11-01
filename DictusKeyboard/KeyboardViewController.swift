@@ -69,8 +69,8 @@ class KeyboardViewController: UIInputViewController {
     private var hostingBottomToInputBottom: NSLayoutConstraint?
 
     /// Fixed toolbar height matching ToolbarView (52pt: 48pt content + 4pt top padding).
-    // Self-hosted fork: 46 (was 52) for a slightly shorter keyboard. Keep the three copies equal.
-    private let toolbarHeight: CGFloat = 46
+    // Self-hosted fork: 34 (was 52) for a shorter keyboard. Keep the three copies equal.
+    private let toolbarHeight: CGFloat = 34
 
     /// Whether viewWillAppear has fired at least once. Guards the Combine handler
     /// from changing hosting height before the controller is registered with KeyboardState.

@@ -76,8 +76,8 @@ struct KeyboardRootView: View {
     @Environment(\.openURL) private var openURL
 
     /// Fixed toolbar height, matching `KeyboardViewController.toolbarHeight`.
-    // Self-hosted fork: 46 (was 52) for a slightly shorter keyboard. Keep the three copies equal.
-    private let toolbarHeight: CGFloat = 46
+    // Self-hosted fork: 34 (was 52) for a shorter keyboard. Keep the three copies equal.
+    private let toolbarHeight: CGFloat = 34
 
     /// What this view presents.
     ///
