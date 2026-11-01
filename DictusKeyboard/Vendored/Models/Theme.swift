@@ -197,7 +197,9 @@ private struct ThemeFactory {
             if legacy {
                 return device.isLandscape ? 3.5 : 6.0
             } else {
-                return device.isLandscape ? 3.5 : 5.5
+                // Self-hosted fork: 4.5 (was 5.5) — slightly taller keys, smaller gaps.
+                // The keyboard's declared height is unchanged (#166).
+                return device.isLandscape ? 3.5 : 4.5
             }
         }()
 
@@ -210,7 +212,8 @@ private struct ThemeFactory {
 
         return Metrics(
             keyCornerRadius: keyCornerRadius,
-            keyHorizontalMargin: 3.0,
+            // Self-hosted fork: 2.0 (was 3.0) — slightly wider keys, smaller gaps.
+            keyHorizontalMargin: 2.0,
             keyVerticalMargin: keyVerticalMargin,
             bannerHeight: bannerHeight,
             altLabelTop: 0.0,

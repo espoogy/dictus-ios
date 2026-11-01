@@ -114,6 +114,7 @@
 		AA0000F1 /* ParakeetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000F1 /* ParakeetEngine.swift */; };
 		AA0000F2 /* SoundFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000F2 /* SoundFeedbackService.swift */; };
 		AA0000F3 /* SoundSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000F3 /* SoundSettingsView.swift */; };
+		FF0F0002 /* LearnedWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1F0002 /* LearnedWordsView.swift */; };
 		AA0000F4 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = AA1000F4 /* Sounds */; };
 		AA0000F5 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000F5 /* LiveActivityManager.swift */; };
 		AA00P201 /* PolishAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10P201 /* PolishAvailability.swift */; };
@@ -299,6 +300,7 @@
 		AA1000F1 /* ParakeetEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParakeetEngine.swift; sourceTree = "<group>"; };
 		AA1000F2 /* SoundFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundFeedbackService.swift; sourceTree = "<group>"; };
 		AA1000F3 /* SoundSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundSettingsView.swift; sourceTree = "<group>"; };
+		FF1F0002 /* LearnedWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnedWordsView.swift; sourceTree = "<group>"; };
 		AA1000F4 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sounds; path = Dictus/Sounds; sourceTree = SOURCE_ROOT; };
 		AA1000F5 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		AA10P201 /* PolishAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolishAvailability.swift; sourceTree = "<group>"; };
@@ -587,6 +589,7 @@
 				AA100302 /* ModelLanguageDetailView.swift */,
 				AA1000E4 /* SwipeBackOverlayView.swift */,
 				AA1000F3 /* SoundSettingsView.swift */,
+				FF1F0002 /* LearnedWordsView.swift */,
 				AA100300 /* CyclingLoadingText.swift */,
 				AA100301 /* ModelLoadingOverlay.swift */,
 				AA100484 /* ModelPreparationPresentation.swift */,
@@ -1079,6 +1082,7 @@
 				AA000302 /* ModelLanguageDetailView.swift in Sources */,
 				AA0000F2 /* SoundFeedbackService.swift in Sources */,
 				AA0000F3 /* SoundSettingsView.swift in Sources */,
+				FF0F0002 /* LearnedWordsView.swift in Sources */,
 				AA0000F6 /* StopStandbyIntent.swift in Sources */,
 				AA0000L0 /* ModelInfo+Localized.swift in Sources */,
 				SS000001 /* SubscriptionManager.swift in Sources */,

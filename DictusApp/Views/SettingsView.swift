@@ -403,6 +403,11 @@ struct SettingsView: View {
 
                 Toggle("Autocorrect", isOn: $autocorrectEnabled)
 
+                // Self-hosted fork: see the learned words, and remove one.
+                NavigationLink("Learned words") {
+                    LearnedWordsView()
+                }
+
                 // Reset the learned-words dictionary (#222). Words learned by
                 // the keyboard bypass autocorrect forever, so users need a way
                 // to recover from accidental learning (e.g. typos recorded
