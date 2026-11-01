@@ -169,6 +169,15 @@ final class DictusKeyboardBridge: NSObject,
                 // Emoji button: identified by the emoji glyph on the key.
                 // No alternate text so the key shows only the smiley icon.
                 handleEmojiToggle()
+            } else if character == KeyboardLayouts.micKeyGlyph {
+                // Self-hosted fork: the dictation key starts a dictation, or stops a
+                // live one (during live text the keys stay on screen).
+                let state = KeyboardState.shared
+                if state.isLiveRecording {
+                    state.requestStop()
+                } else {
+                    state.startRecording()
+                }
             } else {
                 handleInputKey(character)
             }
@@ -235,7 +244,7 @@ final class DictusKeyboardBridge: NSObject,
     private static func editsDocument(_ key: KeyDefinition) -> Bool {
         switch key.type {
         case .input(let character, _):
-            return character != KeyboardLayouts.emojiKeyGlyph
+            return character != KeyboardLayouts.emojiKeyGlyph && character != KeyboardLayouts.micKeyGlyph
         case .backspace, .spacebar, .returnkey, .comma, .fullStop, .tab:
             return true
         default:

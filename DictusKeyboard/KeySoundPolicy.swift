@@ -23,7 +23,8 @@ extension KeySound {
             // The emoji toggle is an `.input` key carrying the smiley rather than a type
             // of its own, and it opens a picker instead of typing — it clicked like a
             // modifier, not like a letter. `didTriggerKey` tells the two apart the same way.
-            return character == KeyboardLayouts.emojiKeyGlyph ? .modifier : .letter
+            return character == KeyboardLayouts.emojiKeyGlyph || character == KeyboardLayouts.micKeyGlyph
+                ? .modifier : .letter
 
         case .comma, .fullStop, .tab:
             // Routed through handleInputKey, so they clicked like the letters they insert.

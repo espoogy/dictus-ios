@@ -221,7 +221,8 @@ final class KeyboardSmartModeState: ObservableObject {
         effectiveMode = dictation.isArmable ? armed : nil
         // The hint teaches the long press, so it goes when the long press stops
         // opening anything (#460).
-        offersHint = SmartModeDiscovery.offersHint(
+        // Self-hosted fork: Smart Mode is hidden, so never advertise it.
+        offersHint = !PremiumFlags.smartModeHidden && SmartModeDiscovery.offersHint(
             deviceCanRunModes: SmartModeAvailability.deviceCanRunModes,
             fanIsReachable: fanIsReachable
         )

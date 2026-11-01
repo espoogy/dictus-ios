@@ -27,6 +27,9 @@ struct ToolbarView: View {
     var onMicTap: () -> Void
     /// Self-hosted fork: the mic stops a live-text dictation.
     var micStopsRecording = false
+    /// Self-hosted fork: the emoji button lives in the toolbar now (the dictation key
+    /// took its place in the bottom row).
+    var onEmojiTap: (() -> Void)?
 
     // Suggestion bar integration parameters (default to idle/empty)
     var statusMessage: String?
@@ -225,8 +228,25 @@ struct ToolbarView: View {
 
             centreSlotContent
 
-            micPill
+            // Self-hosted fork: the right slot shows the emoji button. While a live
+            // dictation runs it shows the red mic instead, which is the stop button.
+            if micStopsRecording {
+                micPill
+            } else {
+                emojiButton
+            }
         }
+    }
+
+    private var emojiButton: some View {
+        Button {
+            HapticFeedback.keyTapped()
+            onEmojiTap?()
+        } label: {
+            barIcon(systemName: "face.smiling", size: 19, width: Self.micPillWidth, shape: .capsule)
+        }
+        .buttonStyle(GlassPressStyle())
+        .accessibilityLabel(Text("Emoji"))
     }
 
     /// The one occupant of the centre slot, resolved by the priority table in

@@ -26,6 +26,11 @@ enum KeyboardLayouts {
     /// (`DictusKeyboardBridge.didTriggerKey`, `editsDocument`, `KeySound.category(for:)`).
     static let emojiKeyGlyph = "\u{1F600}"
 
+    /// Self-hosted fork: glyph carried by the dictation key, which takes the emoji
+    /// key's place in the bottom row (emoji moved to the toolbar). Same pattern as the
+    /// emoji key: an `.input` key told apart by its glyph, drawn as an SF Symbol.
+    static let micKeyGlyph = "\u{1F3A4}"
+
     // MARK: - Number Row (#331)
 
     /// Whether the letter pages currently carry a digit row above the top letter row.
@@ -357,7 +362,7 @@ enum KeyboardLayouts {
         var row: [KeyDefinition] = needsGlobe ? [globeKey()] : []
         row.append(contentsOf: [
             KeyDefinition(type: .symbols, size: CGSize(width: 1.5, height: 1)),
-            KeyDefinition(type: .input(key: emojiKeyGlyph, alternate: nil), size: CGSize(width: 1.5, height: 1)),
+            KeyDefinition(type: .input(key: micKeyGlyph, alternate: nil), size: CGSize(width: 1.5, height: 1)),
             KeyDefinition(type: .spacebar(name: lang.spaceName), size: CGSize(width: needsGlobe ? 4.0 : 5.0, height: 1)),
             KeyDefinition(type: .returnkey(name: lang.returnName), size: CGSize(width: 2.0, height: 1))
         ])

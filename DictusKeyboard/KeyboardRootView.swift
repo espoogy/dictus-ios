@@ -161,6 +161,7 @@ struct KeyboardRootView: View {
             // Self-hosted fork: during live text the keys stay up, so the mic is the stop button.
             onMicTap: { state.isLiveRecording ? state.requestStop() : state.startRecording() },
             micStopsRecording: state.isLiveRecording,
+            onEmojiTap: { state.toggleEmojiPresentation() },
             statusMessage: state.statusMessage,
             messageProbeRootViewID: instanceID,
             messageProbeControllerID: controllerID,

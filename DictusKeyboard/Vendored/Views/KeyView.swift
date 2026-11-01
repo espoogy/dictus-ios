@@ -301,6 +301,9 @@ final class KeyView: UIView {
             // in the bridge; the visual is always the outline smiley icon.
             if string == "\u{1F600}" {
                 sfSymbol(named: "face.smiling", traits: traits)
+            } else if string == "\u{1F3A4}" {
+                // Self-hosted fork: the dictation key.
+                sfSymbol(named: "mic", traits: traits)
             } else {
                 input(string: string, alt: alt, page: page)
             }

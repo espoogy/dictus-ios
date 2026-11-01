@@ -377,8 +377,13 @@ final internal class GiellaKeyboardView: UIView,
 
         // Emoji key popup: show SF Symbol (monochrome) instead of colored emoji glyph.
         let isEmojiKey: Bool
+        var popupSymbol = "face.smiling"
         if case let .input(title, _) = key.type, title == "\u{1F600}" {
             isEmojiKey = true
+        } else if case let .input(title, _) = key.type, title == "\u{1F3A4}" {
+            // Self-hosted fork: the dictation key pops up as a mic, not a glyph.
+            isEmojiKey = true
+            popupSymbol = "mic"
         } else {
             isEmojiKey = false
         }
@@ -388,7 +393,7 @@ final internal class GiellaKeyboardView: UIView,
 
         if isEmojiKey {
             let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
-            let imageView = UIImageView(image: UIImage(systemName: "face.smiling", withConfiguration: config))
+            let imageView = UIImageView(image: UIImage(systemName: popupSymbol, withConfiguration: config))
             imageView.tintColor = theme.textColor
             imageView.contentMode = .center
             imageView.translatesAutoresizingMaskIntoConstraints = false
