@@ -212,8 +212,8 @@ private struct ThemeFactory {
 
         return Metrics(
             keyCornerRadius: keyCornerRadius,
-            // Self-hosted fork: 2.0 (was 3.0) — slightly wider keys, smaller gaps.
-            keyHorizontalMargin: 2.0,
+            // Self-hosted fork: 2.5 (was 3.0) — slightly wider keys. 2.0 ran together.
+            keyHorizontalMargin: 2.5,
             keyVerticalMargin: keyVerticalMargin,
             bannerHeight: bannerHeight,
             altLabelTop: 0.0,
