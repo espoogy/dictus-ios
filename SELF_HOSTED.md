@@ -30,6 +30,9 @@ This branch (`self-hosted`) is a private build of Dictus, signed with our own Ap
 - Settings > Microphone > "Focus on my voice" (default on): Apple voice processing on the
   input node (`applyVoiceFocus`), AGC off, smallest extra ducking. It also unlocks
   Control Center > Mic Mode > Voice Isolation for Dictus.
+- Autocorrect fallback: when the trie finds no correction, `SystemSpellChecker` asks iOS
+  (`UITextChecker`, on device) for one. Gates: 4+ letters, guess in the trie, edit distance
+  <= half the word length. See `TextPredictionEngine.systemSpellCheck`.
 
 ## Auto re-sign every week
 

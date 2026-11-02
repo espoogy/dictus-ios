@@ -418,7 +418,52 @@ class TextPredictionEngine {
             AutocorrectDebugLog.autocorrectSkipped(word: word, reason: "no-trie-candidate")
         }
         #endif
+        if trieResult == nil,
+           let systemResult = systemSpellCheck(word, wordToCheck: wordToCheck, apostrophePrefix: apostrophePrefix) {
+            #if DEBUG
+            AutocorrectDebugLog.autocorrectDecision(
+                original: word, corrected: systemResult.correction, branch: "system-spellchecker", prevWord: nil
+            )
+            #endif
+            return systemResult
+        }
         return trieResult
+    }
+
+    /// Self-hosted fork, pass 6: Apple's spell checker, for words the trie cannot reach
+    /// (typed with more than about 2 mistakes, like "becuz" or "prolly").
+    ///
+    /// Rules that keep it from "fixing" slang and names into wrong words:
+    /// - 4 letters or more, letters only, no apostrophe part. Short words have too many
+    ///   real words nearby.
+    /// - Every word of the guess must be in this keyboard's dictionary.
+    /// - The guess must be within about half the word's length of edits ("lmao" does not
+    ///   become "lamb"; "becuz" can become "because").
+    private func systemSpellCheck(
+        _ word: String,
+        wordToCheck: String,
+        apostrophePrefix: String?
+    ) -> (correction: String, alternatives: [String])? {
+        guard apostrophePrefix == nil,
+              wordToCheck.count >= 4,
+              wordToCheck.allSatisfy(\.isLetter) else { return nil }
+
+        let maxDistance = max(2, (wordToCheck.count + 1) / 2)
+        let guesses = SystemSpellChecker.guesses(for: wordToCheck, language: language)
+            .filter { guess in
+                let lowered = guess.lowercased()
+                let parts = lowered.split(separator: " ").map(String.init)
+                return !parts.isEmpty
+                    && parts.allSatisfy { aospTrieEngine.wordExists($0) }
+                    && Self.editDistance(wordToCheck, lowered) <= maxDistance
+            }
+        guard let best = guesses.first else { return nil }
+
+        let isCapitalized = word.first?.isUppercase == true
+        func cased(_ text: String) -> String {
+            isCapitalized ? text.prefix(1).uppercased() + text.dropFirst() : text
+        }
+        return (cased(best), guesses.dropFirst().prefix(2).map(cased))
     }
 
     /// Predict next words based on context (1-2 previous words).

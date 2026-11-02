@@ -95,6 +95,7 @@
 		AA0000C0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA1000C0 /* Assets.xcassets */; };
 		AA0000C1 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AA1000C1 /* Settings.bundle */; };
 		AA0000D0 /* TextPredictionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000D0 /* TextPredictionEngine.swift */; };
+		FF0F0003 /* SystemSpellChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1F0003 /* SystemSpellChecker.swift */; };
 		AA0000D1 /* SuggestionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000D1 /* SuggestionState.swift */; };
 		AA0000D2 /* fr_frequency.json in Resources */ = {isa = PBXBuildFile; fileRef = AA1000D2 /* fr_frequency.json */; };
 		AA0000D3 /* en_frequency.json in Resources */ = {isa = PBXBuildFile; fileRef = AA1000D3 /* en_frequency.json */; };
@@ -281,6 +282,7 @@
 		AA1000C0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA1000C1 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		AA1000D0 /* TextPredictionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPredictionEngine.swift; sourceTree = "<group>"; };
+		FF1F0003 /* SystemSpellChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemSpellChecker.swift; sourceTree = "<group>"; };
 		AA1000D1 /* SuggestionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionState.swift; sourceTree = "<group>"; };
 		AA1000D2 /* fr_frequency.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fr_frequency.json; sourceTree = "<group>"; };
 		AA1000D3 /* en_frequency.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en_frequency.json; sourceTree = "<group>"; };
@@ -646,6 +648,7 @@
 			isa = PBXGroup;
 			children = (
 				AA1000D0 /* TextPredictionEngine.swift */,
+				FF1F0003 /* SystemSpellChecker.swift */,
 				AA1000D1 /* SuggestionState.swift */,
 				EE100005 /* AOSPTrieEngine.swift */,
 			);
@@ -1128,6 +1131,7 @@
 				AA0000B3 /* EmojiCategoryBar.swift in Sources */,
 				AA0000B4 /* EmojiSearchFR.swift in Sources */,
 				AA0000D0 /* TextPredictionEngine.swift in Sources */,
+				FF0F0003 /* SystemSpellChecker.swift in Sources */,
 				AA0000D1 /* SuggestionState.swift in Sources */,
 				AA0000D4 /* SuggestionBarView.swift in Sources */,
 				AA0000G0 /* KeyTapSignposter.swift in Sources */,
