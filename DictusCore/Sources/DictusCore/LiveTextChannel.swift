@@ -63,6 +63,15 @@ public enum LiveTextChannel {
         return isEnabled && defaults.bool(forKey: modelInstalledKey) && language.hasPrefix("en")
     }
 
+    /// User setting: Apple's voice processing on the mic (echo cancel and noise filter,
+    /// as in a phone call). It also makes iOS offer Mic Mode > Voice Isolation for Dictus
+    /// in Control Center. Default on.
+    public static let voiceFocusKey = "dictus.audio.voiceFocus"
+
+    public static var isVoiceFocusEnabled: Bool {
+        AppGroup.defaults.object(forKey: voiceFocusKey) as? Bool ?? true
+    }
+
     public static let micReadyChoices: [Int] = [10, 30, 60, 120]
     public static let defaultMicReadyMinutes = 30
 

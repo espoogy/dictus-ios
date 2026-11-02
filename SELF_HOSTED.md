@@ -25,6 +25,11 @@ This branch (`self-hosted`) is a private build of Dictus, signed with our own Ap
 - Pro is always on (History, Vocabulary). See `ProStatusManager.isProActiveStatic`.
 - Smart Mode (Apple Intelligence rewrite) is hidden: `PremiumFlags.smartModeHidden`.
 - StoreKit is not contacted at launch (`SubscriptionManager.init`).
+- CarPlay: the warm mic is released 15 s after a dictation (`carRouteIdleReleaseInterval`).
+  While Dictus holds a `.playAndRecord` session, CarPlay plays all phone audio like a call.
+- Settings > Microphone > "Focus on my voice" (default on): Apple voice processing on the
+  input node (`applyVoiceFocus`), AGC off, smallest extra ducking. It also unlocks
+  Control Center > Mic Mode > Voice Isolation for Dictus.
 
 ## Auto re-sign every week
 

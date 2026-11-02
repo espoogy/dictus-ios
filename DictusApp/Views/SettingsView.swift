@@ -71,6 +71,9 @@ struct SettingsView: View {
     @AppStorage(LiveTextChannel.micSleepKey, store: UserDefaults(suiteName: AppGroup.identifier))
     private var micSleepExperiment = false
 
+    @AppStorage(LiveTextChannel.voiceFocusKey, store: UserDefaults(suiteName: AppGroup.identifier))
+    private var voiceFocus = true
+
     /// Post-STT polish toggle (issue #141). Off by default — opt-in measurement at round 1.
     @AppStorage(SharedKeys.polishEnabled, store: UserDefaults(suiteName: AppGroup.identifier))
     private var polishEnabled = false
@@ -292,6 +295,18 @@ struct SettingsView: View {
                 Text("Live text")
             } footer: {
                 Text("Live text puts words in the text field while you speak, in English only. You can delete words and keep talking. \"Keep mic ready\" is how long Dictus stays ready after you dictate. Longer means fewer jumps to the Dictus app, but uses about 3% battery per hour. The experiment turns the mic off 8 seconds after each dictation and tries to turn it back on without opening the app.")
+            }
+
+            // Self-hosted fork: microphone
+            Section {
+                Toggle("Focus on my voice", isOn: $voiceFocus)
+                    .onChange(of: voiceFocus) { _, _ in
+                        DictationCoordinator.shared.micSettingChanged()
+                    }
+            } header: {
+                Text("Microphone")
+            } footer: {
+                Text("Filters out echo and background noise, like a phone call does. For a stronger filter, start a dictation, open Control Center, tap Mic Mode, and pick Voice Isolation. iOS remembers it for Dictus. In a car (CarPlay), the mic turns off 15 seconds after each dictation, so your music sounds normal again.")
             }
 
             // Section 1: Transcription

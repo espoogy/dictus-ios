@@ -300,6 +300,10 @@ class DictationCoordinator: ObservableObject {
     /// holding (issue #428).
     func configureAudioSessionForWarmUp() throws { try audioEngine.configureAudioSession() }
 
+    /// Self-hosted fork: a mic setting changed (Settings > Microphone). Turn the warm mic
+    /// off, so the next start applies the setting. Does nothing during a recording.
+    func micSettingChanged() { audioEngine.releaseWarmState(reason: "micSettingChanged") }
+
     /// Whether the audio engine is already running, for the foreground warm-up policy.
     var isAudioEngineRunning: Bool { audioEngine.isEngineRunning }
 

@@ -304,7 +304,24 @@ class UnifiedAudioEngine: ObservableObject {
     /// "Keep mic ready"), 30 minutes by default. A longer window means fewer jumps to
     /// the Dictus app, at about 3.3% battery per hour while it is ready.
     private static var idleReleaseInterval: TimeInterval {
-        TimeInterval(LiveTextChannel.micReadyMinutes * 60)
+        if isCarRoute { return carRouteIdleReleaseInterval }
+        return TimeInterval(LiveTextChannel.micReadyMinutes * 60)
+    }
+
+    /// Self-hosted fork: how long the mic stays ready when the phone plays through CarPlay.
+    ///
+    /// WHY short: while Dictus holds a `.playAndRecord` session, CarPlay plays all phone
+    /// audio like a phone call (soft, and ducked). Only deactivating the session gives the
+    /// music back, so a 30-minute warm window meant 30 minutes of bad music in the car.
+    ///
+    /// WHY not zero: the non-live path still transcribes and hands off after
+    /// `collectSamples`, and the running engine is what keeps the app alive in the
+    /// background until that is done.
+    private static let carRouteIdleReleaseInterval: TimeInterval = 15
+
+    /// True when the audio output is a car (CarPlay).
+    private static var isCarRoute: Bool {
+        AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .carAudio }
     }
 
     /// Idle window applied when the engine was warmed WITHOUT a preceding
@@ -560,6 +577,16 @@ class UnifiedAudioEngine: ObservableObject {
             reason: Self.routeChangeReasonName(raw),
             details: "previous=\(previous) \(routeStateDescription())"
         ))
+
+        // Self-hosted fork: the phone joined CarPlay while the mic was warm and idle
+        // (for example: dictated at home, then got in the car). Shorten the window so the
+        // car's music comes back (see `carRouteIdleReleaseInterval`). `lastIdleStartTime`
+        // is set only while a release is armed, so this never runs during a recording or
+        // in the middle of an engine start.
+        if Self.isCarRoute, !isRecording, lastIdleStartTime != nil,
+           armedIdleReleaseInterval > Self.carRouteIdleReleaseInterval {
+            scheduleIdleRelease(after: Self.carRouteIdleReleaseInterval)
+        }
     }
 
     /// The name of a route-change reason, with its raw value kept alongside.
@@ -1090,7 +1117,11 @@ class UnifiedAudioEngine: ObservableObject {
         // cannot succeed, and refusing costs nothing.
         recoverInputRouteIfAnInterruptionEmptiedIt(context: context)
 
-        let (inputNode, hwFormat) = try resolveUsableInputFormat(context: context)
+        let (inputNode, resolvedFormat) = try resolveUsableInputFormat(context: context)
+
+        // Self-hosted fork: voice processing changes the node's format, so the converter
+        // pre-build below must use the format read after it.
+        let hwFormat = applyVoiceFocus(to: inputNode, context: context) ?? resolvedFormat
 
         // Pre-build the converter from the format the node just reported, to 16kHz mono.
         //
@@ -1207,6 +1238,66 @@ class UnifiedAudioEngine: ObservableObject {
         if #available(iOS 14.0, *) {
             DictusLogger.app.info("UnifiedAudioEngine started (hw: \(hwFormat.sampleRate, privacy: .public)Hz -> 16kHz)")
         }
+    }
+
+    /// Self-hosted fork: turn Apple's voice processing on or off for the mic, to match the
+    /// "Focus on my voice" setting. Returns the node's new format, or nil when nothing
+    /// changed or the change failed (the engine then records as before).
+    ///
+    /// Voice processing is the filter phone calls use: echo cancel and noise suppression.
+    /// It also makes iOS offer Mic Mode (Voice Isolation) for Dictus in Control Center.
+    ///
+    /// WHY here: the switch needs a stopped engine, and `replaceEngine()` makes a new
+    /// engine with it off. `startEngine` runs before every start, with the engine stopped.
+    ///
+    /// WHY not session mode `.voiceChat`: that mode turns on Bluetooth HFP, which is the
+    /// AirPods control hijack that `.allowBluetoothA2DP` avoids (#85).
+    private func applyVoiceFocus(to inputNode: AVAudioInputNode, context: String) -> AVAudioFormat? {
+        let wanted = LiveTextChannel.isVoiceFocusEnabled
+        guard inputNode.isVoiceProcessingEnabled != wanted else { return nil }
+
+        var failure: Error?
+        do {
+            try ObjCExceptionCatcher.catchException {
+                do {
+                    try inputNode.setVoiceProcessingEnabled(wanted)
+                } catch {
+                    failure = error
+                }
+            }
+        } catch {
+            failure = error
+        }
+        if let failure {
+            PersistentLog.log(.diagnosticProbe(
+                component: "UnifiedAudioEngine", instanceID: context,
+                action: "voiceFocusFailed", details: (failure as NSError).localizedDescription
+            ))
+            return nil
+        }
+
+        if wanted {
+            // AGC boosts quiet sound, and far-away voices are quiet sound. Off.
+            inputNode.isVoiceProcessingAGCEnabled = false
+            // `.duckOthers` already lowers other audio while recording. Ask voice
+            // processing for its smallest ducking, so it does not add more.
+            inputNode.voiceProcessingOtherAudioDuckingConfiguration =
+                AVAudioVoiceProcessingOtherAudioDuckingConfiguration(
+                    enableAdvancedDucking: false,
+                    duckingLevel: .min
+                )
+            // Voice processing is one input-and-output unit. Put the output in the graph
+            // (it plays silence), so the engine starts and the input gets buffers.
+            _ = engine.mainMixerNode
+        }
+
+        let format = inputNode.outputFormat(forBus: 0)
+        PersistentLog.log(.diagnosticProbe(
+            component: "UnifiedAudioEngine", instanceID: context, action: "voiceFocus",
+            details: "on=\(wanted) sr=\(format.sampleRate) ch=\(format.channelCount)"
+        ))
+        guard format.sampleRate > 0, format.channelCount > 0 else { return nil }
+        return format
     }
 
     /// Get an input node whose format can actually be recorded from, rebuilding the
