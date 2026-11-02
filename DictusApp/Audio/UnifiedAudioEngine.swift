@@ -1288,7 +1288,21 @@ class UnifiedAudioEngine: ObservableObject {
                 )
             // Voice processing is one input-and-output unit. Put the output in the graph
             // (it plays silence), so the engine starts and the input gets buffers.
-            _ = engine.mainMixerNode
+            //
+            // WHY the catcher: the first access connects the mixer to the output node, and
+            // AVFoundation raises an NSException when the output format is dead (the
+            // empty-route window of #123, measured on the input side as #71/#102).
+            // On failure, record without voice processing instead of aborting.
+            do {
+                try ObjCExceptionCatcher.catchException { _ = self.engine.mainMixerNode }
+            } catch {
+                PersistentLog.log(.diagnosticProbe(
+                    component: "UnifiedAudioEngine", instanceID: context,
+                    action: "voiceFocusFailed", details: "output: \((error as NSError).localizedDescription)"
+                ))
+                try? inputNode.setVoiceProcessingEnabled(false)
+                return nil
+            }
         }
 
         let format = inputNode.outputFormat(forBus: 0)
